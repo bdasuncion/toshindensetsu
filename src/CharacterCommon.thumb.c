@@ -78,10 +78,21 @@ void commonCharacterMapEdgeCheck(CharacterAttr* character, const MapInfo *mapInf
 	BoundingBox charBoundingBox;
 	character->getBounds(character, &count, &charBoundingBox);
 	
-	character->position.x -= (charBoundingBox.startX < 0)*(charBoundingBox.startX);
-	character->position.y -= (charBoundingBox.startY < 0)*(charBoundingBox.startY);
-	character->position.x -= (charBoundingBox.endX > mapInfo->width)*(charBoundingBox.endX - mapInfo->width);
-	character->position.y -= (charBoundingBox.endY > mapInfo->height)*(charBoundingBox.endY - mapInfo->height);
+	bool leftEdge = (charBoundingBox.startX < 0);
+	bool rightEdge = (charBoundingBox.endX > mapInfo->width);
+	bool upperEdge = (charBoundingBox.startY < 0);
+	bool lowerEdge = (charBoundingBox.endY > mapInfo->height);
+	character->position.x -= leftEdge*(charBoundingBox.startX);
+	character->position.y -= upperEdge*(charBoundingBox.startY);
+	character->position.x -= rightEdge*(charBoundingBox.endX - mapInfo->width);
+	character->position.y -= lowerEdge*(charBoundingBox.endY - mapInfo->height);
+	
+	if (character->free->type == EControlAiType) {
+		((CharacterAIControl*)character->free)->downBlocked |= lowerEdge;
+		((CharacterAIControl*)character->free)->upBlocked |= upperEdge;
+		((CharacterAIControl*)character->free)->leftBlocked |= leftEdge;
+		((CharacterAIControl*)character->free)->rightBlocked |= rightEdge;
+	}	
 }
 
 const CharFuncCollisionReaction common_collisionReactions[2][8] = {
@@ -159,6 +170,36 @@ void commonSetToOamBuffer(SpriteDisplay *spriteDisplay, OBJ_ATTR *oamBuf) {
 	//mprinter_printf("\n");
 }
 
+void commonSetToOamBufferAsObjWindow(SpriteDisplay *spriteDisplay, OBJ_ATTR *oamBuf) {
+	int i, xScreen, yScreen, id = spriteDisplay->baseImageId;
+	
+	//mprinter_printf("PAL ");
+    for (i = 0; i < spriteDisplay->spriteSet->set[spriteDisplay->currentAnimationFrame].numberOflayers; ++i) {
+
+        yScreen = (spriteDisplay->baseY + 
+			spriteDisplay->spriteSet->set[spriteDisplay->currentAnimationFrame].layers[i].offsetY) & 0x00FF;
+
+		oamBuf[i].attr0 = ATTR0_SETASWINOBJ(yScreen, 
+		    spriteDisplay->spriteSet->set[spriteDisplay->currentAnimationFrame].layers[i].shape);
+
+        xScreen = (spriteDisplay->baseX + 
+			spriteDisplay->spriteSet->set[spriteDisplay->currentAnimationFrame].layers[i].offsetX) & 0x01FF;
+		
+		oamBuf[i].attr1 = ATTR1_SET(xScreen, 
+			spriteDisplay->spriteSet->set[spriteDisplay->currentAnimationFrame].layers[i].size,
+			spriteDisplay->spriteSet->set[spriteDisplay->currentAnimationFrame].layers[i].hflip, 
+			spriteDisplay->spriteSet->set[spriteDisplay->currentAnimationFrame].layers[i].vflip);
+		
+		id += spriteDisplay->spriteSet->set[spriteDisplay->currentAnimationFrame].layers[i].idOffset;
+		
+		//mprinter_printf("%d ", spriteDisplay->basePalleteId + spriteDisplay->spriteSet->set[spriteDisplay->currentAnimationFrame].layers[i].palleteidOffset);
+		oamBuf[i].attr2 =  ATTR2_SET(id,
+		    spriteDisplay->basePalleteId + 
+			spriteDisplay->spriteSet->set[spriteDisplay->currentAnimationFrame].layers[i].palleteidOffset, 3);
+			
+		oamBuf[i].fill = 0;
+	}
+}
 void commonDrawDisplay(SpriteDisplay *spriteDisplay) {
 	int i, id = spriteDisplay->baseImageId;
 	//mprinter_printf("PAL %d\n", id);
