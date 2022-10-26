@@ -363,6 +363,8 @@ typedef struct BG_object2Layers
 #define	ATTR0_SHAPE(n)		(n<<14)
 
 #define ATTR0_SET(yPos, shape) (ATTR0_Y(yPos) | ATTR0_SHAPE(shape) | ATTR0_BLEND)
+
+#define ATTR0_SETASWINOBJ(yPos, shape) (ATTR0_Y(yPos) | ATTR0_SHAPE(shape) | ATTR0_WIN)
  
 #define ATTR1_X(n)          (n)
 #define ATTR1_AFF(n)		(n<<9)
