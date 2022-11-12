@@ -85,7 +85,7 @@ void crow_doAction(CharacterAttr* crow,
 }
 	
 void crow_actionStand(CharacterAttr* crow,
-	const MapInfo *mapInfo, const void *dummy) {
+	const MapInfo *mapInfo, const CharacterCollection *characterCollection) {
 	bool isLastFrame = false;
 	CharacterAIControl *charControl = (CharacterAIControl*)crow->free;
 	crow->spriteDisplay.imageUpdateStatus = ENoUpdate;
@@ -98,15 +98,22 @@ void crow_actionStand(CharacterAttr* crow,
 	crow->action = crow->nextAction;
 	crow->direction = crow->nextDirection;
 	
-	++crow->movementCtrl.currentFrame;
-	if (crow->movementCtrl.currentFrame >= crow->movementCtrl.maxFrames) {
-		int distance = charControl->target.x - crow->position.x, rightPhaseDelay, leftPhaseDelay;
-		crow->movementCtrl.currentFrame = 0;
-		distance = distance >> 4;
-		rightPhaseDelay = 6*(distance < 0);
-		leftPhaseDelay = 6*(distance > 0);
-		distance *= (distance < 0)*(-1) + (distance >= 0)*1;
-	    msound_setChannel3d(&soundeffect_crow, false, rightPhaseDelay, leftPhaseDelay, distance);
+	CharacterAttr *targetCharacter = mchar_findCharacterType(characterCollection, ALISA);
+	
+	if (targetCharacter) {
+		charControl->target = targetCharacter->position;
+		++crow->movementCtrl.currentFrame;
+		if (crow->movementCtrl.currentFrame >= crow->movementCtrl.maxFrames) {
+			int distance = charControl->target.x - crow->position.x, rightPhaseDelay, leftPhaseDelay;
+			crow->movementCtrl.currentFrame = 0;
+			rightPhaseDelay = 6*(distance < 0);
+			leftPhaseDelay = 6*(distance > 0);
+			distance = distance >> 4;
+			if (distance < 15 && distance > -15) {
+				distance *= (distance < 0)*(-1) + (distance >= 0)*1;
+				msound_setChannel3d(&soundeffect_crow, false, rightPhaseDelay, leftPhaseDelay, distance);
+			}
+		}
 	}
 	
 	crow->spriteDisplay.spriteSet = &crow_standing;

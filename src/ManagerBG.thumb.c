@@ -94,6 +94,7 @@ void mbg_initializeCharacters(const MapInfo *mapInfo, CharacterCollection *chara
 			character->controller = &commonTriggerCharacterEvent;
 		}
 	}
+//	mprinter_printf("COUNT CHAR INIT %d\n", characterCollection->currentSize);
 }
 
 void mbg_setVerticalTiles(const MapInfo *mapInfo, 
@@ -168,10 +169,10 @@ ECollisionStatus mbg_checkBoundary(
 	//mapInfo->collisionTable;
 	charAttr->getBounds(charAttr, &boundBoxCount, boundingBox);
 	
-	for (i = 0; i < boundBoxCount; ++i) {
-		mprinter_printf("x:%d,y:%d\n", boundingBox[i].upperLeftPt.x, 
-			boundingBox[i].upperLeftPt.y);
-	}
+	//for (i = 0; i < boundBoxCount; ++i) {
+	//	mprinter_printf("x:%d,y:%d\n", boundingBox[i].upperLeftPt.x, 
+	//		boundingBox[i].upperLeftPt.y);
+	//}
 	
 	return ENoCollide;
 }

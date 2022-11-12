@@ -219,7 +219,7 @@ const CharFuncCollisionReaction alisa_collisionReactions[][8] = {
 };
 
 const CharFuncCollisionReaction alisa_mapCollisionReactions[8] = {
-    	/*&common_mapMovingDown,
+    	&common_mapMovingDown,
 		&common_mapMovingRightDownOffset,
 		&common_mapMovingRight,
 		&common_mapMovingRightUpOffset,
@@ -227,15 +227,15 @@ const CharFuncCollisionReaction alisa_mapCollisionReactions[8] = {
 		&common_mapMovingLeftUpOffset,
 		&common_mapMovingLeft,
 		&common_mapMovingLeftDownOffset
-		*/
-		&common_movingDown,
+		
+		/*&common_movingDown,
 		&common_movingRightDownOffset,
 		&common_movingRight,
 		&common_movingRightUpOffset,
 		&common_movingUp,
 		&common_movingLeftUpOffset,
 		&common_movingLeft,
-		&common_movingLeftDownOffset
+		&common_movingLeftDownOffset*/
 };
 
 const CommonMapCollision alisa_mapCollision[] = {
@@ -377,7 +377,7 @@ void alisa_actionStand(CharacterAttr* alisa,
 	alisa->movementCtrl.currentFrame = 0;
 	
 	//alisa->spriteDisplay.spriteSet = alisaStandWithSwordSet[alisa->direction];
-	alisa->spriteDisplay.spriteSet = boyStandSet[alisa->direction];
+	alisa->spriteDisplay.spriteSet = boyStandSet[alisa->faceDirection];
 	//alisa->spriteDisplay.spriteSet = &maincharacter_stand;
 }
 
@@ -462,8 +462,8 @@ void alisa_actionPrepareDash(CharacterAttr* alisa, const MapInfo *mapInfo) {
 	}
 	
 	
-	mprinter_printf("ACTION FRAMES %d %d\n", alisa->spriteDisplay.numberOfFramesPassed, 
-		alisa->spriteDisplay.currentAnimationFrame);
+//	mprinter_printf("ACTION FRAMES %d %d\n", alisa->spriteDisplay.numberOfFramesPassed, 
+//		alisa->spriteDisplay.currentAnimationFrame);
 	
 	alisa->movementCtrl.maxFrames = 0;
 	alisa->movementCtrl.currentFrame = 0;
@@ -562,7 +562,7 @@ void alisa_actionStunned(CharacterAttr* alisa, const MapInfo *mapInfo,
 	alisa->action = alisa->nextAction;
 	alisa->direction = alisa->nextDirection;
 	
-	alisa->spriteDisplay.spriteSet = alisaStunnedSet[alisa->direction];
+	alisa->spriteDisplay.spriteSet = boyDieSet[alisa->faceDirection];
 }
 
 /*void alisa_getBounds(const CharacterAttr* alisa, 

@@ -5,7 +5,7 @@
 #include  <stdlib.h>
 
 #define MAX_BUTTON_INTERVAL 30
-#define MAX_STUN_ANIMATION 30
+#define MAX_STUN_ANIMATION 60
 #define ALISA_NORMALATTACK_INTERVALMAX 8
 
 #define ALISA_MIN_BACKWARD_DASH 4
@@ -17,7 +17,7 @@ void alisa_dashForwardController(CharacterAttr* character);
 void alisa_dashBackwardController(CharacterAttr* character);
 
 const EDirections DEFAULT_DIRECTIONMAP[EDirectionsCount] = {
-	EDown,EDown,ERight,EUp,EUp,EUp,ELeft,EDown
+	ERight,ERight,ERight,ERight,ELeft,ELeft,ELeft,ELeft
 };
 
 ControlMap alisaControlMap = {
@@ -107,20 +107,31 @@ void alisa_controller(CharacterAttr* character) {
 		return;
 	}
 
-	if (controlButtonCheck(character)) {
-		character->controller(character, NULL, NULL);
-		return;
-	}
+	//if (controlButtonCheck(character)) {
+	//	character->controller(character, NULL, NULL);
+	//	return;
+	//}
 
 	character->stats.currentStatus = EStatusNormal;
 	
+	if (character->faceDirection != ERight && character->faceDirection != ELeft) {
+		character->faceDirection = ERight;
+	}
+		
 	if (direction != EUnknown) {
 		character->nextAction = EAlisaRun;
 		character->nextDirection = direction;
-		if (!(direction == EUpleft | direction == EDownleft & character->faceDirection == ELeft) && 
+		/*if (!(direction == EUpleft | direction == EDownleft & character->faceDirection == ELeft) && 
 			!(direction == EUpright | direction == EDownright & character->faceDirection == ERight)) {
 			character->faceDirection = DEFAULT_DIRECTIONMAP[direction];
+		}*/
+		if (direction == EUpleft | direction == EDownleft | direction == ELeft) {
+			character->faceDirection = ELeft;
 		}
+		else if (direction == EUpright | direction == EDownright | direction == ERight) {
+			//character->faceDirection = DEFAULT_DIRECTIONMAP[direction];
+			character->faceDirection = ERight;
+		} 
 		//character->faceDirection = DEFAULT_DIRECTIONMAP[direction];
 		character->getBounds = &alisa_getBoundingBoxMoving;
 		return;
@@ -148,7 +159,7 @@ void alisa_slashController(CharacterAttr* character) {
 	if (controlButtonHold(charControl, &alisa_slashController, &hold, ALISA_NORMALATTACK_INTERVALMAX) &&
 		(character->nextAction != EAlisaNormalSwordSlash && character->nextAction != EAlisaStrongSwordSlash)) {
 		//TODO Add strong attack for when normal attack threshhold is reached
-		mprinter_printf("HOLD %d\n", hold);
+//		mprinter_printf("HOLD %d\n", hold);
 		if (hold >= ALISA_NORMALATTACK_INTERVALMAX) {
 			character->nextAction = EAlisaStrongSwordSlash;
 		} else {
@@ -159,7 +170,7 @@ void alisa_slashController(CharacterAttr* character) {
 	if (character->nextAction == EAlisaNormalSwordSlash || character->nextAction == EAlisaStrongSwordSlash) {
 		commonGetNextFrame(character, &nextScreenFrame, &nextAnimationFrame, &isLastFrame);
 
-		mprinter_printf("%s\n", character->nextAction == EAlisaNormalSwordSlash ? "NORMAL": "STRONG");
+//		mprinter_printf("%s\n", character->nextAction == EAlisaNormalSwordSlash ? "NORMAL": "STRONG");
 		if (isLastFrame) {
 			character->controller = &alisa_controller;
 			character->controller(character, NULL, NULL);
@@ -203,7 +214,7 @@ void alisa_prepareDashController(CharacterAttr* character) {
 	
 	commonGetNextFrame(character, &nextScreenFrame, &nextAnimationFrame, &isLastFrame);
 
-	mprinter_printf("FRAMES %d %d %d\n", nextScreenFrame, nextAnimationFrame,  isLastFrame);
+//	mprinter_printf("FRAMES %d %d %d\n", nextScreenFrame, nextAnimationFrame,  isLastFrame);
 	if (isLastFrame) {
 		character->controller = &alisa_dashForwardController;
 		character->controller(character, NULL, NULL);

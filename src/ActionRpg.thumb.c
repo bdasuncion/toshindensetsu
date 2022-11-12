@@ -92,9 +92,11 @@ void gameloop(MapInfo *mapInfo, CharacterCollection *characterCollection,
 		
 		mapInfo->screenEffect.processScreenEffect(screenAttribute, characterCollection, 
 		    mapInfo, controlPool, charActionCollection);
+			
 		//msound_mix();
 		//msound_mixStereoASMR();
-		msound_mixMono();
+		msound_mixStereo();
+		//msound_mixMono();
 		
 		waitForVBlank();
 	}
@@ -149,8 +151,8 @@ int main() {
 	initDisplay2BG();
 	
 	msound_init();
-	//msound_setUpStereo();
-	msound_setUpMono();
+	msound_setUpStereo();
+	//msound_setUpMono();
 	//test only should be called somewhere else
 	//msound_setChannel(&music_minamohana, true);
 	

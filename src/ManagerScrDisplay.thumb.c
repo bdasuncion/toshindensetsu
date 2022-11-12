@@ -10,9 +10,8 @@
 
 #define OFFSET_X 100
 #define OFFSET_Y 60
-//#define OFFSET_Y 160
+//#define OFFSET_Y 120
 #define BOUND_LENGTH 40
-//#define BOUND_HEIGHT 40
 #define BOUND_HEIGHT 40
 #define X_MOVE_LIMIT 8
 #define Y_MOVE_LIMIT 8
@@ -40,8 +39,7 @@ void mscr_setVerticalMove(ScreenAttr *scrAtt,
 	MapInfo *mapInfo,
 	u16 startYPos);
 
-void initDisplay2BG()
-{
+void initDisplay2BG(){
 	*REG_DISPCNT = DCNT_MODE0|DCNT_OBJ_1D|DCNT_OBJENB|DCNT_BG0|DCNT_BG1|DCNT_BG2;
 }
 
@@ -75,7 +73,7 @@ void mscr_adjustScreenToMapLimits(ScreenAttr *scrAtt, const MapInfo *mapInfo) {
 	} else if (scrAtt->position.x > maxHorizontal) {
 		scrAtt->position.x = maxHorizontal;
 	}
-	
+
 	if (scrAtt->position.y < 0) {
 	    scrAtt->position.y = 0;
 	} else if (scrAtt->position.y > maxVertical) {
@@ -249,9 +247,9 @@ void mscr_draw() {
 
 void initWindowObj() {
 	*REG_DISPCNT |= DCNT_WINOBJ;
-//	*REG_WINOUT = BIT8|BIT9|BITC;
+	*REG_WINOUT = BITC|BITB|BITA|BIT8|BIT9|BIT2|BIT3;
 //	*REG_WINOUT = BIT8|BIT9|BITC|BIT5;
-	*REG_WINOUT = BIT9|BITC|BIT4|BIT1|BIT0|BIT5;
+//	*REG_WINOUT = BIT9|BITC|BIT4|BIT1|BIT0|BIT5;
 }
 
 void removeWindowObj() {

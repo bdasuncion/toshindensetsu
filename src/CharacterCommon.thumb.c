@@ -330,7 +330,9 @@ void common_movingRight(CharacterAttr* character,
     const BoundingBox *charBoundingBox, const BoundingBox *otherCharBoundingBox) {
 	bool didCollide = hasCollision(charBoundingBox, otherCharBoundingBox) | hasCollision(otherCharBoundingBox, charBoundingBox);
 	int xoffset = (charBoundingBox->endX - otherCharBoundingBox->startX)*(charBoundingBox->endX < otherCharBoundingBox->endX);
+	mprinter_printf("CHAR %d OTHER %d OFFSET %d\n", charBoundingBox->endX, otherCharBoundingBox->startX, xoffset);
 	bool greaterThanXOffset = xoffset > character->delta.x;
+	mprinter_printf("DELTA %d\n", character->delta.x);
 	character->collisionCtrl.hasCollision = didCollide;
 	//if (didCollide && (otherCharBoundingBox->direction == ELeft || otherCharBoundingBox->direction == EUpleft ||
 	//	otherCharBoundingBox->direction == EDownleft)) {
@@ -539,6 +541,7 @@ void common_mapMovingRight(CharacterAttr* character,
 	bool didCollide = hasCollision(charBoundingBox, otherCharBoundingBox) | hasCollision(otherCharBoundingBox, charBoundingBox);
 	int xoffset = (charBoundingBox->endX - otherCharBoundingBox->startX);
 	
+	mprinter_printf("CHAR %d OTHER %d OFFSET %d\n", charBoundingBox->endX, otherCharBoundingBox->startX, xoffset);
 	character->collisionCtrl.hasCollision = didCollide;
 	//character->position.x -= (charBoundingBox->endX - otherCharBoundingBox->startX + 1)*didCollide;
 	//character->position.x -= (xoffset + 1)*didCollide;
@@ -546,6 +549,7 @@ void common_mapMovingRight(CharacterAttr* character,
 	xoffset *= didCollide;
 	character->position.x -= xoffset;
 	
+	mprinter_printf("OFFSET %d POSITION %d\n", xoffset, character->position.x);
 	if (character->free->type == EControlAiType) {
 		((CharacterAIControl*)character->free)->rightBlocked |= (xoffset != 0);
 	}

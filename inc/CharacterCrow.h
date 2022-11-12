@@ -18,7 +18,7 @@ typedef enum CrowAction
 
 void crow_controller(CharacterAttr* character, const MapInfo *mapInfo, CharacterCollection *charCollection);
 void crow_actionStand(CharacterAttr* alisa,
-	const MapInfo *mapInfo, const void *dummy);
+	const MapInfo *mapInfo, const CharacterCollection *characterCollection);
 void crow_doAction(CharacterAttr* crow,
 	const MapInfo *mapInfo, const void *dummy, 
 	CharacterActionCollection *charActionCollection);
