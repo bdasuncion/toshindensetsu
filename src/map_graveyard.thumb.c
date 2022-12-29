@@ -161,10 +161,10 @@ int displayTitle = 420;
 void mapGraveYardCustomFunc(ScreenAttr *screenAttribute, CharacterCollection *characterCollection, 
 	MapInfo *mapInfo, void *controlPool, void *charActionCollection){
 	if (displayTitle) {
-		//mprinter_printf("KANKANDARA NO MORI\n");
-		//mprinter_printf("(FOREST OF THE KANKANDARA)\n");
-		//mprinter_printf("\n\n\n\n\n\n");
-		//mprinter_printf("-- USE HEADPHONES --\n");
+		mprinter_printf("KANKANDARA NO MORI\n");
+		mprinter_printf("(FOREST OF THE KANKANDARA)\n");
+		mprinter_printf("\n\n\n\n\n\n");
+		mprinter_printf("-- USE HEADPHONES --\n");
 		--displayTitle;
 	};
 }
