@@ -114,7 +114,7 @@ int main() {
 	//MapInfo mapInfo = mapTest;
 	MapInfo mapInfo = map_graveyard;
 	CharacterAttr *alisa;
-		
+	
 	sprite_vram_init();
 	sprite_palette_init();
 	

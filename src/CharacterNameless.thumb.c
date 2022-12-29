@@ -37,7 +37,7 @@ extern const SpriteSet maincharacter_stand;
 extern const SpriteSet maincharacter_walk;
 extern const SpriteSet ghosthand_appear;
 extern const SpriteSet ghosltyman;
-const unsigned short maincharacterlower_walk_pal[16];
+extern const unsigned short maincharacterlower_walk_pal[16];
 
 void nameless_doAction(CharacterAttr* nameless, const MapInfo *mapInfo, 
     const void *dummy, CharacterActionCollection *charActionCollection);

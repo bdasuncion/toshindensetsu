@@ -28,11 +28,11 @@ CFLAGS	:=	-g -Wall -O3 -fno-strict-aliasing\
 			-mcpu=arm7tdmi -mtune=arm7tdmi\
 # 			-fomit-frame-pointer\
 #			-ffast-math \
-			$(ARCH)
+#			$(ARCH)
 
 CFLAGS	+=	$(INCLUDE)
 
-ASFLAGS	:=	$(ARCH)
+ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-g $(ARCH) -Wl,-Map,$(notdir $@).map
 
 #---------------------------------------------------------------------------------
