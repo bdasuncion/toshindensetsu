@@ -163,7 +163,7 @@ void msound_mixMono() {
 	}
 }
 
-void msound_mixStereo() {
+ARM_IWRAM void msound_mixStereo() {
 	//int zero = 0;
 	int startingIdx = 0, i, idxChannel;
 	if (!soundBuffer.currentBuffer) {
@@ -203,10 +203,6 @@ void msound_mixStereo() {
 					}
 					soundBuffer.bufferA[startingIdx + i] += sound;
 				}
-				/*if (soundChannel->attenuationA < MAX_DISTANCE) {
-					soundBuffer.bufferA[startingIdx + i] += (soundChannel->data[idxData]) - 
-					    ((soundChannel->data[idxData] >> 4)*soundChannel->attenuationA);
-				}*/
 				//soundBuffer.bufferA[startingIdx + i] += (soundChannel->data[idxData]);
 				//soundBuffer.bufferA[startingIdx + i] -= (soundChannel->data[idxData] >> 4)*(soundChannel->attenuationA);
 				soundChannel->currentIdxA += soundChannel->idxStep;
@@ -231,10 +227,6 @@ void msound_mixStereo() {
 					}
 					soundBuffer.bufferB[startingIdx + i] += sound;
 				}
-				/*if (soundChannel->attenuationB < MAX_DISTANCE) {
-					soundBuffer.bufferB[startingIdx + i] += (soundChannel->data[idxData]) - 
-					    ((soundChannel->data[idxData] >> 4)*soundChannel->attenuationB);
-				}*/
 				//soundBuffer.bufferB[startingIdx + i] += (soundChannel->data[idxData]);
 				//soundBuffer.bufferB[startingIdx + i] -= (soundChannel->data[idxData] >> 4)*(soundChannel->attenuationB);
 				soundChannel->currentIdxB += soundChannel->idxStep;
@@ -354,3 +346,16 @@ void msound_process3dSound(int *distance, int *rightPhaseDelay, int *leftPhaseDe
 	*distance = *distance >> 4;
 	*distance *= (*distance < 0)*(-1) + (*distance >= 0)*1;
 }
+
+/*void MusicMix() {
+	s32 i;
+	for(i = 0; i < soundVars.mixBufferSize; i++) {
+	// copy a sample
+	soundVars.curMixBuffer[i] = channel.data[ channel.pos>>12 ] * channel.vol >> 6;
+	channel.pos += channel.inc;
+	// loop the sound if it hits the end
+		if(channel.pos >= channel.length){
+			channel.pos = 0;
+		}
+	}
+}*/

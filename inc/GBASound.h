@@ -77,4 +77,36 @@ typedef struct Sound {
 	const void *data;
 }ALIGN4 Sound;
 
+typedef struct Instrument {
+	s8 *data;
+	u32 length:20;
+	u32 loopStart:20;
+	u32 loopLength:20;
+	u32 dummy:4;
+}ALIGN4 Instrument;
+
+typedef struct PatternData {
+	const Instrument *instrument;
+	u32 note;
+	u32 volume;
+}ALIGN4 PatternData;
+
+typedef struct Pattern {
+	const PatternData *data;
+	u32 count;
+}ALIGN4 Pattern;
+
+typedef struct Track {
+	const Pattern *columns[4];
+	u32 current;
+}ALIGN4 Track;
+
+typedef struct MusicChannel {
+	s8 *data; // pointer to the raw sound data in ROM
+	u32 pos; // current position in the data (20.12 fixed-point)
+	u32 inc; // increment (20.12 fixed-point)
+	u32 vol; // volume (0-64, sort of 1.6 fixed-point)
+	u32 length; // length of the whole sound (20.12 fixed-point)
+} MusicChannel;
+
 #endif
