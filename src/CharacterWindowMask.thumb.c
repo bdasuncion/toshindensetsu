@@ -148,6 +148,11 @@ void windowmask_getBoundingBoxMoving(const CharacterAttr* alisa,
 	boundingBox->direction = alisa->direction;
 	boundingBox->isMoving = true;
 	boundingBox->isMovable = false;*/
+	count = 1;
+	boundingBox->startX = 0;
+	boundingBox->startY = 0;
+	boundingBox->endX = 0;
+	boundingBox->endY = 0;
 }
 
 void windowmask_getBoundingBoxStanding(const CharacterAttr* alisa, 
@@ -163,6 +168,11 @@ void windowmask_getBoundingBoxStanding(const CharacterAttr* alisa,
 	boundingBox->direction = alisa->direction;
 	boundingBox->isMoving = false;
 	boundingBox->isMovable = false;*/
+	count = 1;
+	boundingBox->startX = 0;
+	boundingBox->startY = 0;
+	boundingBox->endX = 0;
+	boundingBox->endY = 0;
 }
 
 void windowmask_checkMapCollision(CharacterAttr* alisa, const MapInfo* mapInfo) {
