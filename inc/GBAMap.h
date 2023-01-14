@@ -4,6 +4,7 @@
 #include "GBAObject.h"
 #include "GBACharacter.h"
 #include "GBACharacterType.h"
+#include "GBASound.h"
 
 typedef enum MAPID {
     MapNoneID,
@@ -73,6 +74,8 @@ typedef struct MapInfo {
 	MapCollision *collisionMap;
 	CharacterInit *characterInit;
 	FuncMap mapFunction;
+	FuncMap onInitMap;
 	ScreenEffect screenEffect;
+	MusicTrack music;
 } ALIGN4 MapInfo;
 #endif

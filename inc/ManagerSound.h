@@ -7,8 +7,8 @@
 #include "GBAObject.h"
 
 void msound_init();
-void msound_setUpMono();
-void msound_setUpStereo();
+void msound_setUpMono(int quality);
+void msound_setUpStereo(int quality);
 void msound_mixMono();
 void msound_mixStereo();
 void msound_mixStereoASMR();

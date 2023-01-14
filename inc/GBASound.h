@@ -63,8 +63,20 @@ typedef struct SampleSoundChannel
 	const s8 *data;
 }SampleSoundChannel;
 
+typedef enum SoundQuality {
+	ELowQ,
+	ELowMidQ,
+	EMidQ,
+	EMidHightQ,
+	EHighQ,
+	EBestQ,
+	ESoundQualityCount
+} SoundQuality;
+
 typedef struct SoundBuffer {
 	u32 currentBuffer;
+	SoundQuality soundQuality;
+	u32 rcpMixFrequency;//For conversion from division to fixed point multiplication
 	//s8	*buffer;
 	s8	*bufferA;
 	s8	*bufferB;
@@ -87,25 +99,27 @@ typedef struct Instrument {
 
 typedef struct PatternData {
 	const Instrument *instrument;
-	u32 note;
-	u32 volume;
+	u32 note:16;
+	u32 volume:6;
+	u32 dummy:10;
 }ALIGN4 PatternData;
 
-typedef struct Pattern {
-	const PatternData *data;
-	u32 count;
-}ALIGN4 Pattern;
+typedef struct MusicTrack {
+	const PatternData *columns[4];
+	const int length;
+}ALIGN4 MusicTrack;
 
 typedef struct Track {
-	const Pattern *columns[4];
-	u32 current;
+	const MusicTrack musicTrack;
+	u32 trackIndex;
+	u32 framesPassed;
 }ALIGN4 Track;
 
 typedef struct MusicChannel {
-	s8 *data; // pointer to the raw sound data in ROM
-	u32 pos; // current position in the data (20.12 fixed-point)
-	u32 inc; // increment (20.12 fixed-point)
-	u32 vol; // volume (0-64, sort of 1.6 fixed-point)
+	const Instrument *instrument; // pointer to the intrument
+	u32 idx; // current position in the data (20.12 fixed-point)
+	u32 idxStep; // increment (20.12 fixed-point)
+	u32 volume; // volume (0-64, sort of 1.6 fixed-point)
 	u32 length; // length of the whole sound (20.12 fixed-point)
 } MusicChannel;
 
