@@ -324,9 +324,9 @@ void common_movingRight(CharacterAttr* character,
     const BoundingBox *charBoundingBox, const BoundingBox *otherCharBoundingBox) {
 	bool didCollide = hasCollision(charBoundingBox, otherCharBoundingBox) | hasCollision(otherCharBoundingBox, charBoundingBox);
 	int xoffset = (charBoundingBox->endX - otherCharBoundingBox->startX)*(charBoundingBox->endX < otherCharBoundingBox->endX);
-	mprinter_printf("CHAR %d OTHER %d OFFSET %d\n", charBoundingBox->endX, otherCharBoundingBox->startX, xoffset);
+	//mprinter_printf("RIGHT CHAR %d OTHER %d OFFSET %d\n", charBoundingBox->endX, otherCharBoundingBox->startX, xoffset&0xFF);
 	bool greaterThanXOffset = xoffset > character->delta.x;
-	mprinter_printf("DELTA %d\n", character->delta.x);
+	//mprinter_printf("DELTA %d DIDCOLLIDE %d\n", character->delta.x, didCollide);
 	character->collisionCtrl.hasCollision = didCollide;
 	//if (didCollide && (otherCharBoundingBox->direction == ELeft || otherCharBoundingBox->direction == EUpleft ||
 	//	otherCharBoundingBox->direction == EDownleft)) {
@@ -348,6 +348,7 @@ void common_movingLeft(CharacterAttr* character,
 	bool didCollide = hasCollision(charBoundingBox, otherCharBoundingBox) | hasCollision(otherCharBoundingBox, charBoundingBox);
 	int xoffset = (otherCharBoundingBox->endX - charBoundingBox->startX)*(charBoundingBox->startX > otherCharBoundingBox->startX);
 	bool greaterThanXOffset = xoffset > (-character->delta.x);
+	//mprinter_printf("LEFT CHAR %d OTHER %d OFFSET %d\n", charBoundingBox->startX, otherCharBoundingBox->endX, xoffset&0xFF);
 	//if (didCollide && (otherCharBoundingBox->direction == ERight || otherCharBoundingBox->direction == EUpright ||
 	//	otherCharBoundingBox->direction == EDownright)) {
 	//	mprinter_printf("OPPOSING FORCES!\n");
@@ -355,6 +356,7 @@ void common_movingLeft(CharacterAttr* character,
 	character->collisionCtrl.hasCollision = didCollide;
 	xoffset = (-character->delta.x)*greaterThanXOffset + (xoffset*(!greaterThanXOffset));
 	xoffset *= didCollide;
+	//mprinter_printf("DELTA %d DIDCOLLIDE %d\n", character->delta.x, didCollide);
 	//character->position.x += (otherCharBoundingBox->endX - charBoundingBox->startX + 1)*didCollide;
 	//character->position.x += (xoffset)*didCollide;
 	character->position.x += xoffset;
