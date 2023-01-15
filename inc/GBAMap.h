@@ -76,6 +76,6 @@ typedef struct MapInfo {
 	FuncMap mapFunction;
 	FuncMap onInitMap;
 	ScreenEffect screenEffect;
-	MusicTrack music;
+	const MusicTrack *music;
 } ALIGN4 MapInfo;
 #endif

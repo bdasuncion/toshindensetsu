@@ -60,7 +60,8 @@ typedef struct SampleSoundChannel
 	u32 currentIdxB;//20:12
 	u16 idxStep;
 	//const void *position;
-	const s8 *data;
+	//const s8 *data;
+	const s16 *data;
 }SampleSoundChannel;
 
 typedef enum SoundQuality {
@@ -77,7 +78,8 @@ typedef struct SoundBuffer {
 	u32 currentBuffer;
 	SoundQuality soundQuality;
 	u32 rcpMixFrequency;//For conversion from division to fixed point multiplication
-	//s8	*buffer;
+	s16	*intermediaryBufferA;
+	s16	*intermediaryBufferB;
 	s8	*bufferA;
 	s8	*bufferB;
 }ALIGN4 SoundBuffer;
@@ -110,17 +112,19 @@ typedef struct MusicTrack {
 }ALIGN4 MusicTrack;
 
 typedef struct Track {
-	const MusicTrack musicTrack;
+	const MusicTrack *musicTrack;
 	u32 trackIndex;
 	u32 framesPassed;
 }ALIGN4 Track;
 
 typedef struct MusicChannel {
-	const Instrument *instrument; // pointer to the intrument
+	const Instrument *instrument; // pointer to the instrument
 	u32 idx; // current position in the data (20.12 fixed-point)
 	u32 idxStep; // increment (20.12 fixed-point)
 	u32 volume; // volume (0-64, sort of 1.6 fixed-point)
 	u32 length; // length of the whole sound (20.12 fixed-point)
+	bool loop:1;
+	bool play:1; 
 } MusicChannel;
 
 #endif

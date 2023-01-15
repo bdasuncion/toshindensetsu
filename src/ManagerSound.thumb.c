@@ -15,9 +15,9 @@
 #define SOUNDEFFECT_NUM_CHANNEL 5
 #define MUSIC_NUM_CHANNEL 4
 
-#define UPDATE_ONFRAME_1 = 0
-#define UPDATE_ONFRAME_2 = 7
-#define UPDATE_MAXCOUNT = 14
+#define UPDATE_ONFRAME_1  0
+#define UPDATE_ONFRAME_2  7
+#define UPDATE_MAXCOUNT  14
 #define NATIVE_GBA_SAMPLERATE 32768 
 
 const int PLAYBACKFREQ[ESoundQualityCount] = {
@@ -52,7 +52,7 @@ const SampleSoundChannel freeSoundEffectChannel = { 0, 0, 0, true, false, true, 
 const MusicChannel freeMusicChannel = { NULL, 0, 0, 0, 0};
 SoundBuffer soundBuffer;
 SampleSoundChannel soundChannels[SOUNDEFFECT_NUM_CHANNEL];
-MusicChannel musicChannels[MUSIC_NUM_CHANNEL];
+MusicChannel musicChannels[MUSIC_NUM_CHANNEL] = {{0,0,0,0,0,0,0}, {0,0,0,0,0,0,0}, {0,0,0,0,0,0,0}, {0,0,0,0,0,0,0}};
 
 void msound_init() {
     int i;
@@ -73,6 +73,8 @@ void msound_setUpMono(int quality) {
 					
 	soundBuffer.currentBuffer = 0;
 	
+	soundBuffer.intermediaryBufferA = malloc(SOUNDBUFFERSIZE[quality]*sizeof(s16));
+	soundBuffer.intermediaryBufferB = malloc(SOUNDBUFFERSIZE[quality]*sizeof(s16));
 	soundBuffer.bufferA = malloc(SOUNDBUFFERSIZE[quality]*2*sizeof(s8));
 	soundBuffer.bufferB = malloc(SOUNDBUFFERSIZE[quality]*2*sizeof(s8));//Why does this crash when I remove this?
 	soundBuffer.soundQuality = quality;
@@ -91,6 +93,8 @@ void msound_setUpStereo(int quality) {
 					
 	soundBuffer.currentBuffer = 0;
 	
+	soundBuffer.intermediaryBufferA = malloc(SOUNDBUFFERSIZE[quality]*sizeof(s16));
+	soundBuffer.intermediaryBufferB = malloc(SOUNDBUFFERSIZE[quality]*sizeof(s16));
 	soundBuffer.bufferA = malloc(SOUNDBUFFERSIZE[quality]*2*sizeof(s8));
 	soundBuffer.bufferB = malloc(SOUNDBUFFERSIZE[quality]*2*sizeof(s8));
 	soundBuffer.soundQuality = quality;
@@ -142,34 +146,53 @@ void msound_setChannel(const Sound *sound, bool isRepeating) {
 	msound_setChannel3d(sound, isRepeating, 0, 0, 0);
 }
 
+void msound_setMusicChannel(int idx, const PatternData *pattern) {
+	if (pattern->instrument != NULL) {
+		musicChannels[idx].instrument = pattern->instrument;
+		musicChannels[idx].idx = 0;
+		musicChannels[idx].idxStep = (pattern->note * soundBuffer.rcpMixFrequency) >> RCPMIXFREQFRACTION;
+		//musicChannels[idx].idxStep = (12559 * soundBuffer.rcpMixFrequency) >> RCPMIXFREQFRACTION;
+		musicChannels[idx].length = pattern->instrument->length;
+		musicChannels[idx].loop = false;
+		musicChannels[idx].play = true;
+		mprinter_printf("%d %d %d %d %d", musicChannels[idx].idxStep, pattern->note, 
+			pattern->instrument->data[2], pattern->instrument->data[3], pattern->instrument->data[4]);
+	} /*else {
+		musicChannels[idx].idxStep = 0;
+		musicChannels[idx].length = 0;
+		musicChannels[idx].loop = 0;
+	}*/
+}
+
+void msound_setRow(Track *track) {
+	int i;
+	for (i = 0; i < 4; ++i) {
+		msound_setMusicChannel(i, &track->musicTrack->columns[i][track->trackIndex]);
+	}
+}
+
 void msound_updateTrack(Track *track) {
 	if (track->framesPassed == UPDATE_ONFRAME_1) {
-	} else if (track->framesPassed == UPDATE_ONFRAME_2 {
+		msound_setRow(track);
+		++track->trackIndex;
+	} else if (track->framesPassed == UPDATE_ONFRAME_2) {
+		msound_setRow(track);
+		++track->trackIndex;
 	}
 	++track->framesPassed;
 	if (track->framesPassed >= UPDATE_MAXCOUNT) {
 		track->framesPassed = 0;
 	}
-}
-
-void msound_setMusicChannel(int idx, PatternData *pattern) {
-	if (pattern->instrument != NULL) {
-		musicChannels[idx].instrument = pattern->instrument;
-		musicChannels[idx].idx = 0;
-		musicChannels[idx].idxStep = pattern->note*soundBuffer.rcpMixFrequency;
+	
+	if (track->trackIndex >= track->musicTrack->length) {
+		track->trackIndex = 0;
 	}
 }
-void msound_mixMono() {
-	//int zero = 0;
-	int startingIdx = 0, i, idxChannel;
-	if (!soundBuffer.currentBuffer) {
-		startingIdx = BUFFER_SIZE;
-		soundBuffer.currentBuffer = 1;
-	} else {
-		soundBuffer.currentBuffer = 0;
-	}
 
-	dma3_cpy32(&soundBuffer.bufferA[startingIdx], sound_zero, BUFFER_SIZE >> 2);
+void msound_mixMono(int startingIdx, int bufSize) {
+	int i, idxChannel;
+
+	dma3_cpy32(&soundBuffer.bufferA[startingIdx], sound_zero, bufSize >> 2);
 	//dma3_cpy32(&soundBuffer.bufferB[startingIdx], sound_zero, BUFFER_SIZE >> 2);
 	
 	for (idxChannel = 0; idxChannel < SOUNDEFFECT_NUM_CHANNEL; ++idxChannel) {
@@ -178,18 +201,12 @@ void msound_mixMono() {
 		    continue;
 		}
 		
-		for(i = 0; i < BUFFER_SIZE; ++i) {
+		for(i = 0; i < bufSize; ++i) {
 		    if (!soundChannel->stopA) {
 			    int idxData = soundChannel->currentIdxA >> INDEX_FRACTION;
 			    soundBuffer.bufferA[startingIdx + i] += soundChannel->data[idxData];
 				soundChannel->currentIdxA += soundChannel->idxStep;
 			}
-			
-			/*if (!soundChannel->stopB) {
-			    int idxData = soundChannel->currentIdxB >> INDEX_FRACTION;
-				soundBuffer.bufferA[startingIdx + i] += soundChannel->data[idxData];
-				soundChannel->currentIdxB += soundChannel->idxStep;
-			}*/
 			    
 			if ((soundChannel->currentIdxA >> INDEX_FRACTION) >= soundChannel->size) {
 				soundChannel->currentIdxA = 0;
@@ -197,13 +214,6 @@ void msound_mixMono() {
 				    soundChannel->stopA = true;
 				}
 			}
-			
-			/*if ((soundChannel->currentIdxB >> INDEX_FRACTION) >= soundChannel->size) {
-				soundChannel->currentIdxB = 0;
-				if (!soundChannel->repeating) {
-				    soundChannel->stopB = true;
-				}
-			}*/
 			
 			if (soundChannel->stopA) {
 				    *soundChannel = freeSoundEffectChannel;
@@ -213,22 +223,31 @@ void msound_mixMono() {
 	}
 }
 
-ARM_IWRAM void msound_mixStereo() {
-	//int zero = 0;
-	int startingIdx = 0, i, idxChannel, bufSize = SOUNDBUFFERSIZE[soundBuffer.soundQuality];
+void msound_mixSound() {
+	int startingIdx = 0, bufSize = SOUNDBUFFERSIZE[soundBuffer.soundQuality], i;
 	if (!soundBuffer.currentBuffer) {
-		//startingIdx = BUFFER_SIZE;
 		startingIdx = bufSize;
 		soundBuffer.currentBuffer = 1;
 	} else {
 		soundBuffer.currentBuffer = 0;
 	}
-
-	//dma3_cpy32_srcFix(&soundBuffer.buffer[startingIdx], sound_zero, BUFFER_SIZE >> 2);
-	//dma3_cpy32(&soundBuffer.bufferA[startingIdx], sound_zero, BUFFER_SIZE >> 2);
-	//dma3_cpy32(&soundBuffer.bufferB[startingIdx], sound_zero, BUFFER_SIZE >> 2);
+	
+	msound_mixStereo(startingIdx, bufSize);
+	msound_mixMusic(startingIdx, bufSize);
+	
 	dma3_cpy32(&soundBuffer.bufferA[startingIdx], sound_zero, bufSize >> 2);
 	dma3_cpy32(&soundBuffer.bufferB[startingIdx], sound_zero, bufSize >> 2);
+	
+	for(i = 0; i < bufSize; ++i) {
+		soundBuffer.bufferA[startingIdx + i] = soundBuffer.intermediaryBufferA[i] >> 3;
+		soundBuffer.bufferB[startingIdx + i] = soundBuffer.intermediaryBufferB[i] >> 3;
+		soundBuffer.intermediaryBufferA[i] = 0;
+		soundBuffer.intermediaryBufferB[i] = 0;
+	}
+}
+
+ARM_IWRAM void msound_mixStereo(int startingIdx, int bufSize) {
+	int i, idxChannel;
 	
 	for (idxChannel = 0; idxChannel < SOUNDEFFECT_NUM_CHANNEL; ++idxChannel) {
 	    SampleSoundChannel *soundChannel = &soundChannels[idxChannel];
@@ -236,13 +255,10 @@ ARM_IWRAM void msound_mixStereo() {
 		    continue;
 		}
 		
-		//for(i = 0; i < BUFFER_SIZE; ++i) {
 		for(i = 0; i < bufSize; ++i) {
 		    if (!soundChannel->stopA && i >= soundChannel->aOutOfPhase) {
 			    int idxData = soundChannel->currentIdxA >> INDEX_FRACTION;
 				if (soundChannel->attenuationA < MAX_DISTANCE) {
-			        //soundBuffer.bufferA[startingIdx + i] += (soundChannel->data[idxData] >> 
-					//    distanceAttenuation[soundChannel->attenuationA]);
 					int sound = 0;
 					if (soundChannel->data[idxData] > 0) {
 						sound = soundChannel->data[idxData] - soundChannel->attenuationA;
@@ -255,18 +271,15 @@ ARM_IWRAM void msound_mixStereo() {
 							sound = 0;
 						}
 					}
-					soundBuffer.bufferA[startingIdx + i] += sound;
+					//soundBuffer.bufferA[startingIdx + i] += sound;
+					soundBuffer.intermediaryBufferA[i] += sound;
 				}
-				//soundBuffer.bufferA[startingIdx + i] += (soundChannel->data[idxData]);
-				//soundBuffer.bufferA[startingIdx + i] -= (soundChannel->data[idxData] >> 4)*(soundChannel->attenuationA);
 				soundChannel->currentIdxA += soundChannel->idxStep;
 			}
 			
 			if (!soundChannel->stopB  && i >= soundChannel->bOutOfPhase) {
 			    int idxData = soundChannel->currentIdxB >> INDEX_FRACTION;
 				if (soundChannel->attenuationB < MAX_DISTANCE) {
-				    //soundBuffer.bufferB[startingIdx + i] += (soundChannel->data[idxData] >> 
-					//distanceAttenuation[soundChannel->attenuationB]);
 					int sound = 0;
 					if (soundChannel->data[idxData] > 0) {
 						sound = soundChannel->data[idxData] - soundChannel->attenuationB;
@@ -279,10 +292,9 @@ ARM_IWRAM void msound_mixStereo() {
 							sound = 0;
 						}
 					}
-					soundBuffer.bufferB[startingIdx + i] += sound;
+					//soundBuffer.bufferB[startingIdx + i] += sound;
+					soundBuffer.intermediaryBufferB[startingIdx + i] += sound;
 				}
-				//soundBuffer.bufferB[startingIdx + i] += (soundChannel->data[idxData]);
-				//soundBuffer.bufferB[startingIdx + i] -= (soundChannel->data[idxData] >> 4)*(soundChannel->attenuationB);
 				soundChannel->currentIdxB += soundChannel->idxStep;
 			}
 			    
@@ -311,111 +323,37 @@ ARM_IWRAM void msound_mixStereo() {
 	}
 }
 
-ARM_IWRAM void msound_mixMusic() {
+ARM_IWRAM void msound_mixMusic(int startingIdx, int bufSize) {
 	int i, idxChannel;
-	int bufSize = SOUNDBUFFERSIZE[soundBuffer.soundQuality], startingIdx;
-	
-	if (!soundBuffer.currentBuffer) {
-		startingIdx = bufSize;
-		soundBuffer.currentBuffer = 1;
-	} else {
-		soundBuffer.currentBuffer = 0;
-	}
 	
 	for (idxChannel = 0; idxChannel < MUSIC_NUM_CHANNEL; ++idxChannel) {
 		MusicChannel *currentChannel = &musicChannels[idxChannel];
+		if (!currentChannel->length || !currentChannel->play) {
+			continue;
+		}
+
 		for(i = 0; i < bufSize; ++i) {
-			if (!currentChannel->length) {
-				continue;
-			}
 			int idxData = currentChannel->idx >> INDEX_FRACTION;
-			soundBuffer.bufferA[startingIdx + i] += currentChannel->instrument->data[idxData];
-			soundBuffer.bufferB[startingIdx + i] += currentChannel->instrument->data[idxData];
+			//soundBuffer.bufferA[startingIdx + i] += currentChannel->instrument->data[idxData];
+			//soundBuffer.bufferB[startingIdx + i] += currentChannel->instrument->data[idxData];
+			soundBuffer.intermediaryBufferA[i] += currentChannel->instrument->data[idxData];
+			soundBuffer.intermediaryBufferB[i] += currentChannel->instrument->data[idxData];
 			currentChannel->idx += currentChannel->idxStep;
-			
-			if ((currentChannel->idx >> INDEX_FRACTION) >= currentChannel->length) {
-				currentChannel->idx = 0;
-			}
-		}
-	}
-}
+			idxData = currentChannel->idx >> INDEX_FRACTION;
 
-void msound_mixStereoASMR() {
-	//int zero = 0;
-	int startingIdx = 0, i, idxChannel, bufSize = SOUNDBUFFERSIZE[soundBuffer.soundQuality];
-	if (!soundBuffer.currentBuffer) {
-		startingIdx = bufSize;
-		soundBuffer.currentBuffer = 1;
-	} else {
-		soundBuffer.currentBuffer = 0;
-	}
-
-	//dma3_cpy32_srcFix(&soundBuffer.buffer[startingIdx], sound_zero, BUFFER_SIZE >> 2);
-	
-	//dma3_cpy32(&soundBuffer.bufferA[startingIdx], sound_zero, BUFFER_SIZE >> 2);
-	//dma3_cpy32(&soundBuffer.bufferB[startingIdx], sound_zero, BUFFER_SIZE >> 2);
-	dma3_cpy32(&soundBuffer.bufferA[startingIdx], sound_zero, bufSize >> 2);
-	dma3_cpy32(&soundBuffer.bufferB[startingIdx], sound_zero, bufSize >> 2);
-	
-	for (idxChannel = 0; idxChannel < SOUNDEFFECT_NUM_CHANNEL; ++idxChannel) {
-	    SampleSoundChannel *soundChannel = &soundChannels[idxChannel];
-	    if (soundChannel->isOpen) {
-		    continue;
-		}
-		
-		for(i = 0; i < bufSize; ++i) {
-		    if (!soundChannel->stopA && i >= soundChannel->aOutOfPhase) {
-			    int idxData = soundChannel->currentIdxA >> INDEX_FRACTION;
-				if (soundChannel->attenuationA < MAX_DISTANCE) {
-			        soundBuffer.bufferA[startingIdx + i] += (soundChannel->data[idxData] >> 
-					    distanceAttenuation[soundChannel->attenuationA]);
-				}
-				/*if (soundChannel->attenuationA < MAX_DISTANCE) {
-					soundBuffer.bufferA[startingIdx + i] += (soundChannel->data[idxData]) - 
-					    ((soundChannel->data[idxData] >> 4)*soundChannel->attenuationA);
-				}*/
-				//soundBuffer.bufferA[startingIdx + i] += (soundChannel->data[idxData]);
-				//soundBuffer.bufferA[startingIdx + i] -= (soundChannel->data[idxData] >> 4)*(soundChannel->attenuationA);
-				soundChannel->currentIdxA += soundChannel->idxStep;
-			}
-			
-			if (!soundChannel->stopB  && i >= soundChannel->bOutOfPhase) {
-			    int idxData = soundChannel->currentIdxB >> INDEX_FRACTION;
-				if (soundChannel->attenuationB < MAX_DISTANCE) {
-				    soundBuffer.bufferB[startingIdx + i] += (soundChannel->data[idxData] >> 
-					distanceAttenuation[soundChannel->attenuationB]);
-				}
-				/*if (soundChannel->attenuationB < MAX_DISTANCE) {
-					soundBuffer.bufferB[startingIdx + i] += (soundChannel->data[idxData]) - 
-					    ((soundChannel->data[idxData] >> 4)*soundChannel->attenuationB);
-				}*/
-				//soundBuffer.bufferB[startingIdx + i] += (soundChannel->data[idxData]);
-				//soundBuffer.bufferB[startingIdx + i] -= (soundChannel->data[idxData] >> 4)*(soundChannel->attenuationB);
-				soundChannel->currentIdxB += soundChannel->idxStep;
-			}
-			    
-			if ((soundChannel->currentIdxA >> INDEX_FRACTION) >= soundChannel->size) {
-				soundChannel->currentIdxA = 0;
-				if (!soundChannel->repeating) {
-				    soundChannel->stopA = true;
-				}
-			}
-			
-			if ((soundChannel->currentIdxB >> INDEX_FRACTION) >= soundChannel->size) {
-				soundChannel->currentIdxB = 0;
-				if (!soundChannel->repeating) {
-				    soundChannel->stopB = true;
-				}
-			}
-			
-			if (soundChannel->stopA && soundChannel->stopB) {
-				    *soundChannel = freeSoundEffectChannel;
-					break;
+			/*if (idxData >= currentChannel->length) {
+				mprinter_printf("STOP %d\n", idxData);
+				currentChannel->play = false;
+				break;
+			}*/
+			if (!currentChannel->loop && (idxData >= currentChannel->length)) {
+				currentChannel->idx = currentChannel->instrument->loopStart << INDEX_FRACTION;
+				currentChannel->loop = true;
+			} else if (currentChannel->loop && (idxData >= 
+				(currentChannel->instrument->loopStart + currentChannel->instrument->loopLength))) {
+				currentChannel->idx = currentChannel->instrument->loopStart << INDEX_FRACTION;
 			}
 		}
-		
-		soundChannel->aOutOfPhase = 0;
-		soundChannel->bOutOfPhase = 0;
 	}
 }
 
