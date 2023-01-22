@@ -54,14 +54,15 @@ typedef struct SampleSoundChannel
 	bool repeating:1;
 	bool stopA:1;
 	bool stopB:1;
-	u32 attenuationA:4;
-	u32 attenuationB:4;
+	u32 attenuationA:8;
+	u32 attenuationB:8;
+	u32 dummy:6;
 	u32 currentIdxA;//20:12
 	u32 currentIdxB;//20:12
 	u16 idxStep;
 	//const void *position;
-	//const s8 *data;
-	const s16 *data;
+	const s8 *data;
+	//const s16 *data;
 }SampleSoundChannel;
 
 typedef enum SoundQuality {

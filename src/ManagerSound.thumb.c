@@ -115,7 +115,8 @@ SampleSoundChannel* getOpenChannel() {
 }
 
 void msound_setChannel3d(const Sound *sound, bool isRepeating, 
-    int rightPhaseDelay, int leftPhaseDelay, int distAttenuation) {
+    int rightPhaseDelay, int leftPhaseDelay, int distance) {
+	int distAttenuation;
     SampleSoundChannel *channel = getOpenChannel();
 	if (!channel) {
 	    return;
@@ -125,6 +126,10 @@ void msound_setChannel3d(const Sound *sound, bool isRepeating,
 	} else {
 		channel->size = sound->size >> 1;
 	}
+	
+	distAttenuation = distance*((distance < 0)*(-1) + (distance >= 0)*1);
+	//mprinter_printf("COMPUTE DIST ATTENUTATION %d\n", ((distance < 0)*(-1) + (distance >= 0)*1));
+	//mprinter_printf("DIST ATTENUTATION %d\n", distAttenuation);
 	channel->aOutOfPhase = rightPhaseDelay;
 	channel->bOutOfPhase = leftPhaseDelay;
 	channel->isOpen = false;
@@ -142,6 +147,19 @@ void msound_setChannel3d(const Sound *sound, bool isRepeating,
 	channel->data = sound->data;
 }
 
+void msound_setChannelStereo(const Sound *sound, bool isRepeating, int distance) {
+	int rightPhaseDelay, leftPhaseDelay, direction, convertedDist;
+	
+	direction = (distance < 0)*(-1) + (distance > 0)*(1);
+	convertedDist = distance*direction;
+	convertedDist = convertedDist >> 4;
+	convertedDist *= direction;
+	
+	rightPhaseDelay = 6*(convertedDist < 0);
+	leftPhaseDelay = 6*(convertedDist > 0);
+	msound_setChannel3d(sound, isRepeating, rightPhaseDelay, leftPhaseDelay, convertedDist);
+}
+
 void msound_setChannel(const Sound *sound, bool isRepeating) {
 	msound_setChannel3d(sound, isRepeating, 0, 0, 0);
 }
@@ -151,12 +169,11 @@ void msound_setMusicChannel(int idx, const PatternData *pattern) {
 		musicChannels[idx].instrument = pattern->instrument;
 		musicChannels[idx].idx = 0;
 		musicChannels[idx].idxStep = (pattern->note * soundBuffer.rcpMixFrequency) >> RCPMIXFREQFRACTION;
-		//musicChannels[idx].idxStep = (12559 * soundBuffer.rcpMixFrequency) >> RCPMIXFREQFRACTION;
 		musicChannels[idx].length = pattern->instrument->length;
 		musicChannels[idx].loop = false;
 		musicChannels[idx].play = true;
-		mprinter_printf("%d %d %d %d %d", musicChannels[idx].idxStep, pattern->note, 
-			pattern->instrument->data[2], pattern->instrument->data[3], pattern->instrument->data[4]);
+		//mprinter_printf("%d %d %d %d %d", musicChannels[idx].idxStep, pattern->note, 
+		//	pattern->instrument->data[2], pattern->instrument->data[3], pattern->instrument->data[4]);
 	} /*else {
 		musicChannels[idx].idxStep = 0;
 		musicChannels[idx].length = 0;
@@ -232,20 +249,21 @@ void msound_mixSound() {
 		soundBuffer.currentBuffer = 0;
 	}
 	
-	msound_mixStereo(startingIdx, bufSize);
-	msound_mixMusic(startingIdx, bufSize);
-	
 	dma3_cpy32(&soundBuffer.bufferA[startingIdx], sound_zero, bufSize >> 2);
 	dma3_cpy32(&soundBuffer.bufferB[startingIdx], sound_zero, bufSize >> 2);
 	
-	for(i = 0; i < bufSize; ++i) {
-		soundBuffer.bufferA[startingIdx + i] = soundBuffer.intermediaryBufferA[i] >> 3;
-		soundBuffer.bufferB[startingIdx + i] = soundBuffer.intermediaryBufferB[i] >> 3;
+	msound_mixStereo(startingIdx, bufSize);
+	msound_mixMusic(startingIdx, bufSize);
+	
+	/*for(i = 0; i < bufSize; ++i) {
+		soundBuffer.bufferA[startingIdx + i] = soundBuffer.intermediaryBufferA[i];
+		soundBuffer.bufferB[startingIdx + i] = soundBuffer.intermediaryBufferB[i];
 		soundBuffer.intermediaryBufferA[i] = 0;
 		soundBuffer.intermediaryBufferB[i] = 0;
-	}
+	}*/
 }
 
+#define ATTENUATION 2
 ARM_IWRAM void msound_mixStereo(int startingIdx, int bufSize) {
 	int i, idxChannel;
 	
@@ -261,18 +279,18 @@ ARM_IWRAM void msound_mixStereo(int startingIdx, int bufSize) {
 				if (soundChannel->attenuationA < MAX_DISTANCE) {
 					int sound = 0;
 					if (soundChannel->data[idxData] > 0) {
-						sound = soundChannel->data[idxData] - soundChannel->attenuationA;
+						sound = soundChannel->data[idxData] - (soundChannel->attenuationA*ATTENUATION);
 						if (sound < 0){
 							sound = 0;
 						}
 					} else if (soundChannel->data[idxData] < 0){
-						sound = soundChannel->data[idxData] + soundChannel->attenuationA;
+						sound = soundChannel->data[idxData] + (soundChannel->attenuationA*ATTENUATION);
 						if (sound > 0){
 							sound = 0;
 						}
 					}
-					//soundBuffer.bufferA[startingIdx + i] += sound;
-					soundBuffer.intermediaryBufferA[i] += sound;
+					soundBuffer.bufferA[startingIdx + i] += sound;
+					//soundBuffer.intermediaryBufferA[i] += sound;
 				}
 				soundChannel->currentIdxA += soundChannel->idxStep;
 			}
@@ -282,18 +300,18 @@ ARM_IWRAM void msound_mixStereo(int startingIdx, int bufSize) {
 				if (soundChannel->attenuationB < MAX_DISTANCE) {
 					int sound = 0;
 					if (soundChannel->data[idxData] > 0) {
-						sound = soundChannel->data[idxData] - soundChannel->attenuationB;
+						sound = soundChannel->data[idxData] - (soundChannel->attenuationB*ATTENUATION);
 						if (sound < 0){
 							sound = 0;
 						}
 					} else if (soundChannel->data[idxData] < 0){
-						sound = soundChannel->data[idxData] + soundChannel->attenuationB;
+						sound = soundChannel->data[idxData] + (soundChannel->attenuationB*ATTENUATION);
 						if (sound > 0){
 							sound = 0;
 						}
 					}
-					//soundBuffer.bufferB[startingIdx + i] += sound;
-					soundBuffer.intermediaryBufferB[startingIdx + i] += sound;
+					soundBuffer.bufferB[startingIdx + i] += sound;
+					//soundBuffer.intermediaryBufferB[startingIdx + i] += sound;
 				}
 				soundChannel->currentIdxB += soundChannel->idxStep;
 			}
@@ -334,10 +352,10 @@ ARM_IWRAM void msound_mixMusic(int startingIdx, int bufSize) {
 
 		for(i = 0; i < bufSize; ++i) {
 			int idxData = currentChannel->idx >> INDEX_FRACTION;
-			//soundBuffer.bufferA[startingIdx + i] += currentChannel->instrument->data[idxData];
-			//soundBuffer.bufferB[startingIdx + i] += currentChannel->instrument->data[idxData];
-			soundBuffer.intermediaryBufferA[i] += currentChannel->instrument->data[idxData];
-			soundBuffer.intermediaryBufferB[i] += currentChannel->instrument->data[idxData];
+			soundBuffer.bufferA[startingIdx + i] += currentChannel->instrument->data[idxData];
+			soundBuffer.bufferB[startingIdx + i] += currentChannel->instrument->data[idxData];
+			//soundBuffer.intermediaryBufferA[i] += currentChannel->instrument->data[idxData];
+			//soundBuffer.intermediaryBufferB[i] += currentChannel->instrument->data[idxData];
 			currentChannel->idx += currentChannel->idxStep;
 			idxData = currentChannel->idx >> INDEX_FRACTION;
 
@@ -370,16 +388,3 @@ void msound_process3dSound(int *distance, int *rightPhaseDelay, int *leftPhaseDe
 	*distance = *distance >> 4;
 	*distance *= (*distance < 0)*(-1) + (*distance >= 0)*1;
 }
-
-/*void MusicMix() {
-	s32 i;
-	for(i = 0; i < soundVars.mixBufferSize; i++) {
-	// copy a sample
-	soundVars.curMixBuffer[i] = channel.data[ channel.pos>>12 ] * channel.vol >> 6;
-	channel.pos += channel.inc;
-	// loop the sound if it hits the end
-		if(channel.pos >= channel.length){
-			channel.pos = 0;
-		}
-	}
-}*/

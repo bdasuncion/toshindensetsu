@@ -40,6 +40,9 @@ extern const MapInfo mapforest;
 extern const MapInfo map_graveyard;
 extern const EventTransfer transfer_mapforest[];
 extern const EventTransfer startat_map_graveyard[];
+extern const MusicTrack musichorror;
+extern const MusicTrack musictest2;
+extern const MusicTrack musickankandara;
 
 void fadeToBlack(ScreenAttr *screenAttribute, CharacterCollection *characterCollection, MapInfo *mapInfo);
 void mapCommon_goDark(void *screenAttribute, void *characterCollection, MapInfo *mapInfo);
@@ -55,7 +58,7 @@ void gameloop(MapInfo *mapInfo, CharacterCollection *characterCollection,
 	//mapInfo->transferTo =  &mapInfo->tranfers[0];
 	//mapInfo->mapFunction = &fadeToBlack;
 	//mapInfo->screenEffect.processScreenEffect = &mapCommon_goDark;
-	
+	Track track = {&musickankandara,0,0};
 	while(1) {	
 		mprinter_clear();
 
@@ -66,9 +69,6 @@ void gameloop(MapInfo *mapInfo, CharacterCollection *characterCollection,
 		    mchar_action(characterCollection);
 		    mchar_resolveAction(characterCollection, mapInfo, charActionCollection);
 		}
-		/*mprinter_printf("%d,%d\n", screenAttribute.position.x,
-			screenAttribute.position.y);
-		mprinter_printf("%d,%d\n", mapInfo.width, mapInfo.height);*/
 		
 		//screenAttribute.controller(&screenAttribute, 
 		//	&mapInfo);
@@ -93,13 +93,15 @@ void gameloop(MapInfo *mapInfo, CharacterCollection *characterCollection,
 		mapInfo->screenEffect.processScreenEffect(screenAttribute, characterCollection, 
 		    mapInfo, controlPool, charActionCollection);
 			
-		//msound_mix();
-		//msound_mixStereoASMR();
-		msound_mixStereo();
-		//msound_mixMono();
+		msound_updateTrack(&track);
+		msound_mixSound();
 		
 		waitForVBlank();
 	}
+}
+
+void setWaitState() {
+	WAITCNT = STDWAIT;
 }
 
 int main() {
@@ -114,7 +116,7 @@ int main() {
 	//MapInfo mapInfo = mapTest;
 	MapInfo mapInfo = map_graveyard;
 	CharacterAttr *alisa;
-	
+	setWaitState();
 	sprite_vram_init();
 	sprite_palette_init();
 	
@@ -151,10 +153,7 @@ int main() {
 	initDisplay2BG();
 	
 	msound_init();
-	msound_setUpStereo();
-	//msound_setUpMono();
-	//test only should be called somewhere else
-	//msound_setChannel(&music_minamohana, true);
+	msound_setUpStereo(EMidQ);
 	
 	mprinter_init();
 	gameloop(&mapInfo, &characterCollection, &oamCollection, &controlPool, 
