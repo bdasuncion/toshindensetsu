@@ -135,10 +135,10 @@ int kankandara_setPosition(CharacterAttr* character,
 	character->spriteDisplay.baseX = CONVERT_TO_SCRXPOS(character->position.x, 
 		scr_pos->x, kankandara_scrConversionMeasurements);
 	
-	charStartX = character->position.x - KANKANDARA_SCREENDISPLAYOFFSET_X;
-	charStartY = character->position.y;
-	charEndX = character->position.x + KANKANDARA_SCREENDISPLAYOFFSET_X;
-	charEndY = character->position.y - KANKANDARA_SCREENDISPLAYOFFSET_Y;
+	charStartX = CONVERT_2POS(character->position.x) - KANKANDARA_SCREENDISPLAYOFFSET_X;
+	charStartY = CONVERT_2POS(character->position.y);
+	charEndX = CONVERT_2POS(character->position.x) + KANKANDARA_SCREENDISPLAYOFFSET_X;
+	charEndY = CONVERT_2POS(character->position.y) - KANKANDARA_SCREENDISPLAYOFFSET_Y;
 	
 	if (commonIsInScreen(charStartX, charEndX, charStartY, charEndY, scr_pos, scr_dim)) {
 		character->spriteDisplay.imageUpdateStatus = ((!character->spriteDisplay.isInScreen)*EUpdate) + 
@@ -212,10 +212,10 @@ void kankandara_actionWait(CharacterAttr* character, const MapInfo *mapInfo,
 		
 	character->spriteDisplay.spriteSet = &kankandara_wait;
 	
-	boundingBox.startX = character->position.x - 32;
-	boundingBox.endX = character->position.x + 32;
-	boundingBox.startY = character->position.y + 32;
-	boundingBox.endY = character->position.y + 80;
+	boundingBox.startX = CONVERT_2POS(character->position.x) - 32;
+	boundingBox.endX = CONVERT_2POS(character->position.x) + 32;
+	boundingBox.startY = CONVERT_2POS(character->position.y) + 32;
+	boundingBox.endY = CONVERT_2POS(character->position.y) + 80;
 	charControl->target = *commonFindCharTypeInBoundingBox(characterCollection, &boundingBox, 
 		STARTPLAYABLECHARTYPE, ENDPLAYABLECHARACTERTYPE);
 	
@@ -276,7 +276,7 @@ void kankandara_actionCrawl(CharacterAttr* character, const MapInfo *mapInfo,
 	}
 	
 	bool isMovingLeft = (character->nextDirection == ELeft);
-	character->delta.x = isMovingLeft*(-1) + !isMovingLeft*1;
+	character->delta.x = CONVERT_2MOVE(isMovingLeft*(-1) + !isMovingLeft*1);
 	character->delta.y = 0;
 	character->position.x += character->delta.x;
 	character->action = character->nextAction;
@@ -290,16 +290,16 @@ void kankandara_actionCrawl(CharacterAttr* character, const MapInfo *mapInfo,
 	Position collisionPoints[5];
 	int attackVal = 1, countPoints = 5, offSetDirection = (isMovingLeft*(-1) + !isMovingLeft*(1));
 	 
-	collisionPoints[0].x = character->position.x + kankandara_collision_offsetValues[0].x*offSetDirection;
-	collisionPoints[0].y = character->position.y + kankandara_collision_offsetValues[0].y;
-	collisionPoints[1].x = character->position.x + kankandara_collision_offsetValues[1].x*offSetDirection;
-	collisionPoints[1].y = character->position.y + kankandara_collision_offsetValues[1].y;
-	collisionPoints[2].x = character->position.x + kankandara_collision_offsetValues[2].x*offSetDirection;
-	collisionPoints[2].y = character->position.y + kankandara_collision_offsetValues[2].y;	
-	collisionPoints[3].x = character->position.x + kankandara_collision_offsetValues[3].x*offSetDirection;
-	collisionPoints[3].y = character->position.y + kankandara_collision_offsetValues[3].y;	
-	collisionPoints[4].x = character->position.x + kankandara_collision_offsetValues[4].x*offSetDirection;
-	collisionPoints[4].y = character->position.y + kankandara_collision_offsetValues[4].y;	
+	collisionPoints[0].x = CONVERT_2POS(character->position.x) + kankandara_collision_offsetValues[0].x*offSetDirection;
+	collisionPoints[0].y = CONVERT_2POS(character->position.y) + kankandara_collision_offsetValues[0].y;
+	collisionPoints[1].x = CONVERT_2POS(character->position.x) + kankandara_collision_offsetValues[1].x*offSetDirection;
+	collisionPoints[1].y = CONVERT_2POS(character->position.y) + kankandara_collision_offsetValues[1].y;
+	collisionPoints[2].x = CONVERT_2POS(character->position.x) + kankandara_collision_offsetValues[2].x*offSetDirection;
+	collisionPoints[2].y = CONVERT_2POS(character->position.y) + kankandara_collision_offsetValues[2].y;	
+	collisionPoints[3].x = CONVERT_2POS(character->position.x) + kankandara_collision_offsetValues[3].x*offSetDirection;
+	collisionPoints[3].y = CONVERT_2POS(character->position.y) + kankandara_collision_offsetValues[3].y;	
+	collisionPoints[4].x = CONVERT_2POS(character->position.x) + kankandara_collision_offsetValues[4].x*offSetDirection;
+	collisionPoints[4].y = CONVERT_2POS(character->position.y) + kankandara_collision_offsetValues[4].y;	
 
 	mchar_actione_add(charActionCollection, EActionAttack, attackVal, countPoints, &collisionPoints);
 	
@@ -308,35 +308,37 @@ void kankandara_actionCrawl(CharacterAttr* character, const MapInfo *mapInfo,
 	 if (targetCharacter) {
 	    //mprinter_printf("FOUND TARGET\n");
 		charControl->target = targetCharacter->position;
-		int distance = charControl->target.x - character->position.x, rightPhaseDelay, leftPhaseDelay;
+		int distance = CONVERT_2POS(charControl->target.x) - CONVERT_2POS(character->position.x), rightPhaseDelay, leftPhaseDelay;
 	
 		if (character->movementCtrl.currentFrame >= character->movementCtrl.maxFrames) {
 			character->movementCtrl.currentFrame = 0;
-			rightPhaseDelay = 6*(distance < 0);
-			leftPhaseDelay = 6*(distance > 0);
-			distance = distance >> 4;
-			if (distance < 15 && distance > -15) {
-				distance *= (distance < 0)*(-1) + (distance >= 0)*1;
-				msound_setChannel3d(&soundeffect_slither, false, rightPhaseDelay, leftPhaseDelay, distance);
-			}
+			//rightPhaseDelay = 6*(distance < 0);
+			//leftPhaseDelay = 6*(distance > 0);
+			//distance = distance >> 4;
+			//if (distance < 15 && distance > -15) {
+				//msound_setChannel3d(&soundeffect_slither, false, rightPhaseDelay, leftPhaseDelay, distance);
+				msound_setChannelStereo(&soundeffect_slither, false, distance);
+			//}
 		}
 		
 		int checkIfBehindDistance = DISTANCETURNAROUND + 1;
 		if (isMovingLeft) {
-			checkIfBehindDistance = charControl->target.x - character->position.x;
+			checkIfBehindDistance = CONVERT_2POS(charControl->target.x) - CONVERT_2POS(character->position.x);
 		} else {
-			checkIfBehindDistance = character->position.x - charControl->target.x;
+			checkIfBehindDistance = CONVERT_2POS(character->position.x) - CONVERT_2POS(charControl->target.x);
 		}
-		int distY = character->position.y - charControl->target.y;
+		int distY = CONVERT_2POS(character->position.y) - CONVERT_2POS(charControl->target.y);
 		if (checkIfBehindDistance < DISTANCETURNAROUND && checkIfBehindDistance >= 0 && distY <= 20 && distY >= -20) {
 			charControl->currentStatus = EKankandaraStatusTurnAround;
 			character->movementCtrl.currentFrame = 0;
-			rightPhaseDelay = 6*(distance < 0);
-			leftPhaseDelay = 6*(distance > 0);
-			distance = distance >> 4;
+			//rightPhaseDelay = 6*(distance < 0);
+			//leftPhaseDelay = 6*(distance > 0);
+			//distance = distance >> 4;
+			//mprinter_printf("distance %d\n", distance);
 			CharacterPlayerControl *targetControl = (CharacterAIControl*)targetCharacter->free;
 			if (targetControl->currentStatus != EAlisaStatusStunned) {
-				msound_setChannel3d(&soundeffect_kankandarascream, false, rightPhaseDelay, leftPhaseDelay, distance);
+				msound_setChannelStereo(&soundeffect_kankandarascream, false, distance);
+				//msound_setChannel3d(&soundeffect_kankandarascream, false, rightPhaseDelay, leftPhaseDelay, distance);
 			}
 		}
     }

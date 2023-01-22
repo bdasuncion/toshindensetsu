@@ -46,8 +46,8 @@ void initDisplay2BG(){
 void mscr_initCharMoveRef(ScreenAttr *scrAtt, const MapInfo *mapInfo,
 	Position *moveReference, ScreenBoundingBox *moveRefCustomBox) {
 	
-	scrAtt->position.x = moveReference->x - DIVIDE_BY_2(GBA_SCREEN_WIDTH);
-	scrAtt->position.y = moveReference->y - DIVIDE_BY_2(GBA_SCREEN_HEIGHT);
+	scrAtt->position.x = CONVERT_2POS(moveReference->x) - DIVIDE_BY_2(GBA_SCREEN_WIDTH);
+	scrAtt->position.y = CONVERT_2POS(moveReference->y) - DIVIDE_BY_2(GBA_SCREEN_HEIGHT);
 	
 	mscr_adjustScreenToMapLimits(scrAtt, mapInfo);
 	
@@ -84,8 +84,8 @@ void mscr_adjustScreenToMapLimits(ScreenAttr *scrAtt, const MapInfo *mapInfo) {
 void mscr_moveScr(ScreenAttr *scrAtt, MapInfo *mapInfo) {
 	Position *ref = scrAtt->moveReference;
 	if (ref) {
-		u16 x = ref->x;
-		u16 y = ref->y;
+		u16 x = CONVERT_2POS(ref->x);
+		u16 y = CONVERT_2POS(ref->y);
 		u16 startXPos = scrAtt->position.x;
 		u16 startYPos = scrAtt->position.y;
 		s32 maxHorizontal = mapInfo->width - GBA_SCREEN_WIDTH;

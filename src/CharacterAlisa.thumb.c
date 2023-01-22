@@ -31,41 +31,25 @@ extern const EDirections directions[EDirectionsCount];
 extern const Sound soundeffect_slash;
 
 const s32 alisa_runOffsetX[EDirectionsCount][alisa_RUN_MVMNT_CTRL_MAX] = {
-    /*{0,0,0,0,0},
-	{1,2,1,2,1},
-	{2,2,2,2,2},
-	{1,2,1,2,1},
 	{0,0,0,0,0},
-	{-1,-2,-1,-2,-1},
-	{-2,-2,-2,-2,-2},
-	{-1,-2,-1,-2,-1}*/
+    {2*MOVE_DIAG,1*MOVE_DIAG,2*MOVE_DIAG,1*MOVE_DIAG,2*MOVE_DIAG},
+	{2*MOVE_STR,1*MOVE_STR,2*MOVE_STR,1*MOVE_STR,2*MOVE_STR},
+	{2*MOVE_STR,1*MOVE_STR,2*MOVE_STR,1*MOVE_STR,2*MOVE_STR},
 	{0,0,0,0,0},
-	{1,1,2,1,1},
-	{2,1,2,1,2},
-	{1,1,2,1,1},
-	{0,0,0,0,0},
-	{-1,-1,-2,-1,-1},
-	{-2,-1,-2,-1,-2},
-	{-1,-1,-2,-1,-1}
+	{-2*MOVE_DIAG,-1*MOVE_DIAG,-2*MOVE_DIAG,-1*MOVE_DIAG,-2*MOVE_DIAG},
+	{-2*MOVE_STR,-1*MOVE_STR,-2*MOVE_STR,-1*MOVE_STR,-2*MOVE_STR},
+	{-2*MOVE_DIAG,-1*MOVE_DIAG,-2*MOVE_DIAG,-1*MOVE_DIAG,-2*MOVE_DIAG}
 };
 
 const s32 alisa_runOffsetY[EDirectionsCount][alisa_RUN_MVMNT_CTRL_MAX] = {
-    /*{2,2,2,2,2},
-	{1,2,1,2,1},
+	{2*MOVE_STR,1*MOVE_STR,2*MOVE_STR,1*MOVE_STR,2*MOVE_STR},
+	{2*MOVE_DIAG,1*MOVE_DIAG,2*MOVE_DIAG,1*MOVE_DIAG,2*MOVE_DIAG},
 	{0,0,0,0,0},
-	{-1,-2,-1,-2,-1},
-	{-2,-2,-2,-2,-2},
-	{-1,-2,-1,-2,-1},
+	{-2*MOVE_DIAG,-1*MOVE_DIAG,-2*MOVE_DIAG,-1*MOVE_DIAG,-2*MOVE_DIAG},
+	{-2*MOVE_STR,-1*MOVE_STR,-2*MOVE_STR,-1*MOVE_STR,-2*MOVE_STR},
+	{-2*MOVE_DIAG,-1*MOVE_DIAG,-2*MOVE_DIAG,-1*MOVE_DIAG,-2*MOVE_DIAG},
 	{0,0,0,0,0},
-	{1,2,1,2,1}*/
-	{2,1,2,1,2},
-	{1,1,2,1,1},
-	{0,0,0,0,0},
-	{-2,-1,-2,-1,-2},
-	{-1,-1,-2,-1,-1},
-	{-1,-1,-2,-1,-1},
-	{0,0,0,0,0},
-	{1,1,2,1,1}
+	{2*MOVE_DIAG,1*MOVE_DIAG,2*MOVE_DIAG,1*MOVE_DIAG,2*MOVE_DIAG}
 };
 
 const s32 alisa_dashOffsetX[EDirectionsCount][alisa_DASH_MVMNT_CTRL_MAX] = {
@@ -636,6 +620,7 @@ void alisa_checkActionEventCollision(CharacterAttr *alisa, CharacterActionCollec
 	BoundingBox charBoundingBox;
 	bool isHit = false;
 	CharacterPlayerControl *charControl = (CharacterAIControl*)alisa->free;
+	//mprinter_printf("ALISA COLLISSION\n");
 	if (alisa->stats.currentStatus == EStatusNoActionCollision) {
 		return;
 	}
@@ -645,7 +630,7 @@ void alisa_checkActionEventCollision(CharacterAttr *alisa, CharacterActionCollec
 		CharacterActionEvent *charActionEvent = &actionEvents->currentActions[i];
 
 		for (j = 0; j < charActionEvent->count; ++j) {
-			isHit |= commonPositionInBounds(&charActionEvent->collisionPoints[j], &charBoundingBox);
+			isHit |= commonCollissionPointInBounds(&charActionEvent->collisionPoints[j], &charBoundingBox);
 		}
 		if (isHit) {
 			alisa->stats.currentLife -= 1;

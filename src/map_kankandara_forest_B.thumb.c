@@ -329,7 +329,7 @@ void mapKankandaraForestBCustomFunc(ScreenAttr *screenAttribute, CharacterCollec
 			for (i = 0; i < characterCollection->currentSize; ++i) {
 				if (characterCollection->characters[i]->type == KANKANDARA) {
 					CharacterAttr *kankandara = characterCollection->characters[i];
-					kankandara->position.y = 120;
+					kankandara->position.y = CONVERT_2MOVE(120);
 					isSecondPartForestB = true;
 				}
 			}

@@ -51,9 +51,9 @@ void commonRemoveCharacter(CharacterAttr *character) {
 void commonDoCharacterEvent(CharacterAttr *character, const MapInfo *mapInfo, CharacterCollection *charCollection);
 
 void commonCharacterSetPosition(CharacterAttr* character, int x, int y, int z, EDirections direction) {
-	character->position.x = x;
-	character->position.y = y;
-	character->position.z = z;
+	character->position.x = CONVERT_2MOVE(x);
+	character->position.y = CONVERT_2MOVE(y);
+	character->position.z = CONVERT_2MOVE(z);
 	character->direction = direction;
 	character->nextDirection = direction;
 }
@@ -82,10 +82,10 @@ void commonCharacterMapEdgeCheck(CharacterAttr* character, const MapInfo *mapInf
 	bool rightEdge = (charBoundingBox.endX > mapInfo->width);
 	bool upperEdge = (charBoundingBox.startY < 0);
 	bool lowerEdge = (charBoundingBox.endY > mapInfo->height);
-	character->position.x -= leftEdge*(charBoundingBox.startX);
-	character->position.y -= upperEdge*(charBoundingBox.startY);
-	character->position.x -= rightEdge*(charBoundingBox.endX - mapInfo->width);
-	character->position.y -= lowerEdge*(charBoundingBox.endY - mapInfo->height);
+	character->position.x -= CONVERT_2MOVE(leftEdge*(charBoundingBox.startX));
+	character->position.y -= CONVERT_2MOVE(upperEdge*(charBoundingBox.startY));
+	character->position.x -= CONVERT_2MOVE(rightEdge*(charBoundingBox.endX - mapInfo->width));
+	character->position.y -= CONVERT_2MOVE(lowerEdge*(charBoundingBox.endY - mapInfo->height));
 	
 	if (character->free->type == EControlAiType) {
 		((CharacterAIControl*)character->free)->downBlocked |= lowerEdge;
@@ -310,10 +310,17 @@ bool hasCollision(const BoundingBox *charBoundingBox, const BoundingBox *otherCh
 		inBounds(charBoundingBox->endY, otherCharBoundingBox->startY, otherCharBoundingBox->endY));
 }
 
+bool commonCollissionPointInBounds(const Position *collisionPoint, const BoundingBox *boundingBox) {
+
+    return inBounds(collisionPoint->x, boundingBox->startX, boundingBox->endX) &
+		inBounds(collisionPoint->y, boundingBox->startY, boundingBox->endY);
+}	
+
+
 bool commonPositionInBounds(const Position *position, const BoundingBox *boundingBox) {
 
-    return inBounds(position->x, boundingBox->startX, boundingBox->endX) &
-		inBounds(position->y, boundingBox->startY, boundingBox->endY);
+    return inBounds(CONVERT_2POS(position->x), boundingBox->startX, boundingBox->endX) &
+		inBounds(CONVERT_2POS(position->y), boundingBox->startY, boundingBox->endY);
 }	
 
 void common_noMovement(CharacterAttr* character, 
@@ -336,7 +343,7 @@ void common_movingRight(CharacterAttr* character,
 	xoffset *= didCollide;
 	//character->position.x -= (charBoundingBox->endX - otherCharBoundingBox->startX + 1)*didCollide;
 	//character->position.x -= (xoffset)*didCollide;
-	character->position.x -= xoffset;
+	character->position.x -= CONVERT_2MOVE(xoffset);
 	
 	if (character->free->type == EControlAiType) {
 		((CharacterAIControl*)character->free)->rightBlocked |= (xoffset != 0);
@@ -359,7 +366,7 @@ void common_movingLeft(CharacterAttr* character,
 	//mprinter_printf("DELTA %d DIDCOLLIDE %d\n", character->delta.x, didCollide);
 	//character->position.x += (otherCharBoundingBox->endX - charBoundingBox->startX + 1)*didCollide;
 	//character->position.x += (xoffset)*didCollide;
-	character->position.x += xoffset;
+	character->position.x += CONVERT_2MOVE(xoffset);
 	
 	if (character->free->type == EControlAiType) {
 		((CharacterAIControl*)character->free)->leftBlocked |= (xoffset != 0);
@@ -380,7 +387,7 @@ void common_movingUp(CharacterAttr* character,
 	yoffset *= didCollide;
 	//character->position.y += (otherCharBoundingBox->endY - charBoundingBox->startY + 1)*didCollide;
 	//character->position.y += (yoffset)*didCollide;
-	character->position.y += yoffset;
+	character->position.y += CONVERT_2MOVE(yoffset);
 	
 	if (character->free->type == EControlAiType) {
 		((CharacterAIControl*)character->free)->upBlocked |= (yoffset != 0);
@@ -401,7 +408,7 @@ void common_movingDown(CharacterAttr* character,
 	yoffset *= didCollide;
 	//character->position.y -= (charBoundingBox->endY - otherCharBoundingBox->startY + 1)*didCollide;
 	//character->position.y -= (yoffset)*didCollide;
-	character->position.y -= yoffset;
+	character->position.y -= CONVERT_2MOVE(yoffset);
 	
 	if (character->free->type == EControlAiType) {
 		((CharacterAIControl*)character->free)->downBlocked |= (yoffset != 0);
@@ -433,8 +440,8 @@ void common_movingRightUpOffset(CharacterAttr* character,
 	//character->position.x -= (xOffset + 1)*(!doOffsetY)*didCollide;
 	//character->position.y += (yOffset)*doOffsetY*didCollide;
 	//character->position.x -= (xOffset)*(!doOffsetY)*didCollide;
-	character->position.y += yOffset;
-	character->position.x -= xOffset;
+	character->position.y += CONVERT_2MOVE(yOffset);
+	character->position.x -= CONVERT_2MOVE(xOffset);
 	
 	if (character->free->type == EControlAiType) {
 		((CharacterAIControl*)character->free)->rightBlocked |= (xOffset != 0);
@@ -467,8 +474,8 @@ void common_movingLeftUpOffset(CharacterAttr* character,
 	yOffset *= doOffsetY*didCollide;
 	//character->position.y += (yOffset + 1)*doOffsetY*didCollide;
 	//character->position.x += (xOffset +  1)*(!doOffsetY)*didCollide;
-	character->position.y += yOffset;
-	character->position.x += xOffset;
+	character->position.y += CONVERT_2MOVE(yOffset);
+	character->position.x += CONVERT_2MOVE(xOffset);
 	
 	if (character->free->type == EControlAiType) {
 		((CharacterAIControl*)character->free)->leftBlocked |= (xOffset != 0);
@@ -495,8 +502,8 @@ void common_movingRightDownOffset(CharacterAttr* character,
 	yOffset *= doOffsetY*didCollide;
 	//character->position.y -= (yOffset + 1)*doOffsetY*didCollide;
 	//character->position.x -= (xOffset + 1)*(!doOffsetY)*didCollide;
-	character->position.y -= yOffset;
-	character->position.x -= xOffset;
+	character->position.y -= CONVERT_2MOVE(yOffset);
+	character->position.x -= CONVERT_2MOVE(xOffset);
 	
 	if (character->free->type == EControlAiType) {
 		((CharacterAIControl*)character->free)->rightBlocked |= (xOffset != 0);
@@ -523,8 +530,8 @@ void common_movingLeftDownOffset(CharacterAttr* character,
 	yOffset *= doOffsetY*didCollide;
 	//character->position.y -= (yOffset + 1)*doOffsetY*didCollide;
 	//character->position.x += (xOffset + 1)*(!doOffsetY)*didCollide;
-	character->position.y -= yOffset;
-	character->position.x += xOffset;
+	character->position.y -= CONVERT_2MOVE(yOffset);
+	character->position.x += CONVERT_2MOVE(xOffset);
 	
 	if (character->free->type == EControlAiType) {
 		((CharacterAIControl*)character->free)->leftBlocked |= (xOffset != 0);
@@ -539,7 +546,7 @@ void common_mapMovingRight(CharacterAttr* character,
 	character->collisionCtrl.hasCollision = didCollide;
 	xoffset += 1;
 	xoffset *= didCollide;
-	character->position.x -= xoffset;
+	character->position.x -= CONVERT_2MOVE(xoffset);
 	if (character->free->type == EControlAiType) {
 		((CharacterAIControl*)character->free)->rightBlocked |= (xoffset != 0);
 	}
@@ -552,7 +559,7 @@ void common_mapMovingLeft(CharacterAttr* character,
 	character->collisionCtrl.hasCollision = didCollide;
 	xoffset += 1;
 	xoffset *= didCollide;
-	character->position.x += xoffset;
+	character->position.x += CONVERT_2MOVE(xoffset);
 	if (character->free->type == EControlAiType) {
 		((CharacterAIControl*)character->free)->leftBlocked |= (xoffset != 0);
 	}
@@ -565,7 +572,7 @@ void common_mapMovingUp(CharacterAttr* character,
 	character->collisionCtrl.hasCollision = didCollide;
 	yoffset += 1;
 	yoffset *= didCollide;
-	character->position.y += yoffset;
+	character->position.y += CONVERT_2MOVE(yoffset);
 	if (character->free->type == EControlAiType) {
 		((CharacterAIControl*)character->free)->upBlocked |= (yoffset != 0);
 	}
@@ -578,7 +585,7 @@ void common_mapMovingDown(CharacterAttr* character,
 	character->collisionCtrl.hasCollision = didCollide;
 	yoffset += 1;
 	yoffset *= didCollide;
-	character->position.y -= yoffset;
+	character->position.y -= CONVERT_2MOVE(yoffset);
 	if (character->free->type == EControlAiType) {
 		((CharacterAIControl*)character->free)->downBlocked |= (yoffset != 0);
 	}  
@@ -595,8 +602,8 @@ void common_mapMovingRightUpOffset(CharacterAttr* character,
 	yOffset *= doOffsetY*didCollide;
 	xOffset += 1;
 	xOffset *= (!doOffsetY)*didCollide;
-	character->position.y += yOffset;
-	character->position.x -= xOffset;
+	character->position.y += CONVERT_2MOVE(yOffset);
+	character->position.x -= CONVERT_2MOVE(xOffset);
 	if (character->free->type == EControlAiType) {
 		((CharacterAIControl*)character->free)->upBlocked |= (yOffset != 0);
 		((CharacterAIControl*)character->free)->rightBlocked |= (xOffset != 0);
@@ -614,8 +621,8 @@ void common_mapMovingLeftUpOffset(CharacterAttr* character,
 	yOffset *= doOffsetY*didCollide;
 	xOffset += 1;
 	xOffset *= (!doOffsetY)*didCollide;
-	character->position.y += yOffset;
-	character->position.x += xOffset;
+	character->position.y += CONVERT_2MOVE(yOffset);
+	character->position.x += CONVERT_2MOVE(xOffset);
 	if (character->free->type == EControlAiType) {
 		((CharacterAIControl*)character->free)->upBlocked |= (yOffset != 0);
 		((CharacterAIControl*)character->free)->leftBlocked |= (xOffset != 0);
@@ -633,8 +640,8 @@ void common_mapMovingRightDownOffset(CharacterAttr* character,
 	yOffset *= doOffsetY*didCollide;
 	xOffset += 1;
 	xOffset *= (!doOffsetY)*didCollide;
-	character->position.y -= yOffset;
-	character->position.x -= xOffset;
+	character->position.y -= CONVERT_2MOVE(yOffset);
+	character->position.x -= CONVERT_2MOVE(xOffset);
 	if (character->free->type == EControlAiType) {
 		((CharacterAIControl*)character->free)->downBlocked |= (yOffset != 0);
 		((CharacterAIControl*)character->free)->rightBlocked |= (xOffset != 0);
@@ -652,8 +659,8 @@ void common_mapMovingLeftDownOffset(CharacterAttr* character,
 	yOffset *= doOffsetY*didCollide;
 	xOffset += 1;
 	xOffset *= (!doOffsetY)*didCollide;
-	character->position.y -= yOffset;
-	character->position.x += xOffset;
+	character->position.y -= CONVERT_2MOVE(yOffset);
+	character->position.x += CONVERT_2MOVE(xOffset);
 	if (character->free->type == EControlAiType) {
 		((CharacterAIControl*)character->free)->downBlocked |= (yOffset != 0);
 		((CharacterAIControl*)character->free)->leftBlocked |= (xOffset != 0);

@@ -189,9 +189,9 @@ typedef struct OBJ_AFFINE
 }ALIGN4 OBJ_AFFINE;
 
 typedef struct Position {
-	s16 x;
-	s16 y;
-	s16 z;
+	s32 x;
+	s32 y;
+	s32 z;
 } ALIGN4 Position;
 
 typedef struct ScreenPosition {
@@ -381,18 +381,6 @@ typedef struct BG_object2Layers
 #define	ATTR2_PRIO(n)		(n<<10)
 #define	ATTR2_PAL(n)		(n<<12)
 #define ATTR2_SET(spriteid, palleteid, priority)     ( ATTR2_ID(spriteid) | ATTR2_PRIO(priority) | ATTR2_PAL(palleteid) )
-
-#define CONVERT_TO_SCRXPOS(x, scr_x, stat) \
-	((x - (stat[EScrCnvrtWidth] >> 1)) - scr_x)&0x1FF
-	
-#define CONVERT_TO_SCRYPOS(y, scr_y, stat) \
-	((y - stat[EScrCnvrtHeight]) - scr_y)&0xFF
-
-#define CONVERT_TO_BOUNDINGBOX_X(x, stat) \
-	(x - (DIVIDE_BY_2(stat[EBBCnvrtLength])))
-
-#define CONVERT_TO_BOUNDINGBOX_Y(y, stat) \
-	(y - (DIVIDE_BY_2(stat[EBBCnvrtWidth])))
 	
 #define ARM_IWRAM __attribute__((section(".iwram"), long_call))
 #endif
