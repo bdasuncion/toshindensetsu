@@ -188,4 +188,4 @@ void mapFenceAreaCustomFunc(ScreenAttr *screenAttribute, CharacterCollection *ch
 	}
 }
 
-const MapInfo map_fencearea = { 512, 256, 2, 7, 3, 2, 1, NULL , mapentryset_map_fencearea, tileset_map_fencearea, pallette_map_fencearea, transfer_map_fencearea, collision_map_fencearea, actors_map_fencearea, &mapFenceAreaCustomFunc, NULL  };
+const MapInfo map_fencearea = { 512, 256, 2, 7, 3, 2, 1, NULL , mapentryset_map_fencearea, tileset_map_fencearea, pallette_map_fencearea, transfer_map_fencearea, collision_map_fencearea, actors_map_fencearea, &mapFenceAreaCustomFunc, NULL, NULL, NULL, {0,0,0,0,0}  };

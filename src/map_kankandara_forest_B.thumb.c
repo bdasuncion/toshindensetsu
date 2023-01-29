@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include "GBAMap.h"
+#include "GBASound.h"
 #include "MapCommon.h"
 #include "CharacterAlisa.h"
 
@@ -17,6 +18,8 @@ extern const unsigned int tile_treetop_lowerleft[32];
 extern const unsigned int tile_treetop_upper[32];
 extern const unsigned int tile_treetop_upperright[32];
 extern const unsigned int tile_treetop_upperleft[32];
+extern const MusicTrack musickankandara;
+
 const unsigned short mapentry_map_kankandara_forest_b[2][4096] = {
 	{
 		0x1018,0x1019,0x1018,0x1019,0x1018,0x1019,0x1018,0x1019,0x1018,0x1019,0x1018,0x1019,0x1018,0x1019,0x1018,0x1019,0x1018,0x1019,0x1018,0x1019,0x1018,0x1019,0x1018,0x1019,0x1018,0x1019,0x1018,0x1019,0x1018,0x1019,0x1018,0x1019,0x1018,0x1019,0x1018,0x1019,0x1018,0x1019,0x1018,0x1019,0x1018,0x1019,0x1018,0x1019,0x1018,0x1019,0x101C,0x101D,0x0000,0x0000,0x0000,0x0000,0x1028,0x1029,0x1018,0x1019,0x1018,0x1019,0x1018,0x1019,0x1018,0x1019,0x1018,0x1019,
@@ -303,19 +306,23 @@ const EventTransfer transfer_map_kankandara_forest_b[] = {
 };
 
 bool isSecondPartForestB = false;
-bool isInitialized = false;
 int deathcounterForestB = 0;
 const EventTransfer resetInDieForestB = { 0, 0, 464, 480, &map_kankandara_forest_a, 16, 24, EDown};
-extern bool isSecondPartForestA;
 
-void mapKankandaraForestBCustomFunc(ScreenAttr *screenAttribute, CharacterCollection *characterCollection, MapInfo *mapInfo, void *controlPool, void *charActionCollection) {
+void mapKankandaraForestBOnInit(ScreenAttr *screenAttribute, CharacterCollection *characterCollection, 
+	MapInfo *mapInfo, void *controlPool, void *charActionCollection, void *track) {
+	initWindowObj();
+}
+
+void mapKankandaraForestBOnExit(ScreenAttr *screenAttribute, CharacterCollection *characterCollection, 
+	MapInfo *mapInfo, void *controlPool, void *charActionCollection, void *track) {
+	removeWindowObj();
+}
+void mapKankandaraForestBCustomFunc(ScreenAttr *screenAttribute, CharacterCollection *characterCollection, 
+	MapInfo *mapInfo, void *controlPool, void *charActionCollection) {
 	int i;
 	CharacterAttr *playableChar = NULL;
 	
-	if (!isInitialized) {
-		initWindowObj();
-		isInitialized = true;
-	}
 	for (i = 0; i < characterCollection->currentSize; ++i) {
 		if (characterCollection->characters[i]->type <= ENDPLAYABLECHARACTERTYPE) {
 			playableChar = characterCollection->characters[i];
@@ -342,12 +349,14 @@ void mapKankandaraForestBCustomFunc(ScreenAttr *screenAttribute, CharacterCollec
 				removeWindowObj();
 				mapInfo->transferTo = &resetInDieForestB;
 				mapInfo->mapFunction = &fadeToBlack;
-				isInitialized = false;
 				isSecondPartForestB = false;
-				isSecondPartForestA = true;
 			}
 		}
 	}
 }
 
-const MapInfo map_kankandara_forest_b = { 512, 512, 2, 10, 2, 1, 2, NULL , mapentryset_map_kankandara_forest_b, tileset_map_kankandara_forest_b, pallette_map_kankandara_forest_b, transfer_map_kankandara_forest_b, collision_map_kankandara_forest_b, actors_map_kankandara_forest_b, &mapKankandaraForestBCustomFunc, NULL };
+const MapInfo map_kankandara_forest_b = { 512, 512, 2, 10, 2, 1, 2, NULL , mapentryset_map_kankandara_forest_b, 
+	tileset_map_kankandara_forest_b, pallette_map_kankandara_forest_b, transfer_map_kankandara_forest_b, 
+	collision_map_kankandara_forest_b, actors_map_kankandara_forest_b, 
+	&mapKankandaraForestBCustomFunc, &mapKankandaraForestBOnInit, &mapKankandaraForestBOnExit, 
+	&musickankandara, {0,0,0,0,0}};

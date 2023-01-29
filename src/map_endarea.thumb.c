@@ -18,6 +18,8 @@ extern const unsigned int tile_treetop_upperright[32];
 extern const unsigned int tile_treetop[32];
 extern const unsigned int tile_highway[128];
 extern const unsigned int tile_car[256];
+extern const MusicTrack musickankandara_end;
+
 const unsigned short mapentry_map_endarea[2][1024] = {
 	{
 		0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,
@@ -143,17 +145,18 @@ const CharacterInit actors_map_endarea[] = {
 const EventTransfer transfer_map_endarea[] = {
 };
 
-bool initEndArea = true;
+//bool initEndArea = true;
 int startCredits = 0;
 const BoundingBox eventBoxEnd = {80, 64, 112, 96};
+void mapEndAreaOnInit(ScreenAttr *screenAttribute, CharacterCollection *characterCollection, 
+	MapInfo *mapInfo, void *controlPool, void *charActionCollection, void *track) {
+	//removeWindowObj();
+}
+
 void mapEndAreaCustomFunc(ScreenAttr *screenAttribute, CharacterCollection *characterCollection, 
-	MapInfo *mapInfo, void *controlPool, void *charActionCollection) {
+	MapInfo *mapInfo, void *controlPool, void *charActionCollection, Track *track) {
 	int i;
-	if (initEndArea) {
-		initEndArea = false;
-		removeWindowObj();
-	}
-	
+
 	CharacterAttr *playableChar = NULL;
 	for (i = 0; i < characterCollection->currentSize; ++i) {
 		if (characterCollection->characters[i]->type <= ENDPLAYABLECHARACTERTYPE) {
@@ -164,6 +167,9 @@ void mapEndAreaCustomFunc(ScreenAttr *screenAttribute, CharacterCollection *char
 	if (playableChar && startCredits == 0) {
 		CharacterPlayerControl *charControl = (CharacterPlayerControl*)playableChar->free;
 		if (commonPositionInBounds(&playableChar->position, &eventBoxEnd) && startCredits == 0){
+			track->musicTrack = &musickankandara_end;
+			track->trackIndex = 0;
+			track->framesPassed = 0;
 			++startCredits;
 		}
 	}
@@ -178,4 +184,6 @@ void mapEndAreaCustomFunc(ScreenAttr *screenAttribute, CharacterCollection *char
 		mprinter_printf("GAME OVER\n");
 	}
 }
-const MapInfo map_endarea = { 256, 256, 2, 12, 4, 0, 0, NULL , mapentryset_map_endarea, tileset_map_endarea, pallette_map_endarea, transfer_map_endarea, collision_map_endarea, actors_map_endarea, &mapEndAreaCustomFunc, NULL };
+const MapInfo map_endarea = { 256, 256, 2, 12, 4, 0, 0, NULL , mapentryset_map_endarea, tileset_map_endarea, 
+	pallette_map_endarea, transfer_map_endarea, collision_map_endarea, 
+	actors_map_endarea, &mapEndAreaCustomFunc, NULL, NULL, NULL, {0,0,0,0,0} };

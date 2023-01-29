@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include "GBAMap.h"
+#include "GBASound.h"
 #include "MapCommon.h"
 #include "CharacterAlisa.h"
 
@@ -16,6 +17,8 @@ extern const unsigned int tile_treetop_lowerleft[32];
 extern const unsigned int tile_treetop_upper[32];
 extern const unsigned int tile_treetop_upperright[32];
 extern const unsigned int tile_treetop_upperleft[32];
+extern const MusicTrack musickankandara;
+
 const unsigned short mapentry_map_kankandara_forest_a[2][4096] = {
 	{
 		0x1018,0x1019,0x1018,0x1019,0x1018,0x1019,0x1018,0x1019,0x1018,0x1019,0x1018,0x1019,0x1018,0x1019,0x1018,0x1019,0x1018,0x1019,0x1018,0x1019,0x1018,0x1019,0x1018,0x1019,0x1018,0x1019,0x1018,0x1019,0x1018,0x1019,0x1018,0x1019,0x1018,0x1019,0x1018,0x1019,0x1018,0x1019,0x1018,0x1019,0x1018,0x1019,0x1018,0x1019,0x1018,0x1019,0x101C,0x101D,0x0000,0x0000,0x0000,0x0000,0x1028,0x1029,0x1018,0x1019,0x1018,0x1019,0x1018,0x1019,0x1018,0x1019,0x1018,0x1019,
@@ -300,12 +303,21 @@ const EventTransfer transfer_map_kankandara_forest_a[] = {
 	{ 384, 0, 464, 480, &map_kankandara_forest_b, 32, 24, EUp},
 };
 
-void mapKankandaraForestACustomFunc(ScreenAttr *screenAttribute, CharacterCollection *characterCollection, MapInfo *mapInfo, void *controlPool, void *charActionCollection);
-
-const MapInfo map_kankandara_forest_a = { 512, 512, 2, 10, 2, 1, 1, NULL , mapentryset_map_kankandara_forest_a, tileset_map_kankandara_forest_a, pallette_map_kankandara_forest_a, transfer_map_kankandara_forest_a, collision_map_kankandara_forest_a, actors_map_kankandara_forest_a, &mapKankandaraForestACustomFunc, NULL };
-
 bool isSecondPartForestA = false;
 int deathcounterForestA = 0;
+
+void mapKankandaraForestACustomFunc(ScreenAttr *screenAttribute, CharacterCollection *characterCollection, MapInfo *mapInfo, void *controlPool, void *charActionCollection);
+
+void mapKankandaraForestAOnInit(ScreenAttr *screenAttribute, CharacterCollection *characterCollection, 
+	MapInfo *mapInfo, void *controlPool, void *charActionCollection, void *track) {
+	isSecondPartForestA = false;
+	deathcounterForestA = 0;
+}
+	
+const MapInfo map_kankandara_forest_a = { 512, 512, 2, 10, 2, 1, 1, NULL , mapentryset_map_kankandara_forest_a, tileset_map_kankandara_forest_a, pallette_map_kankandara_forest_a, 
+	transfer_map_kankandara_forest_a, collision_map_kankandara_forest_a, actors_map_kankandara_forest_a, 
+	&mapKankandaraForestACustomFunc, &mapKankandaraForestAOnInit, NULL, &musickankandara, {0,0,0,0,0}};
+
 const EventTransfer resetInDieForestA = { 0, 0, 464, 480, &map_kankandara_forest_a, 16, 24, EDown};
 void mapKankandaraForestACustomFunc(ScreenAttr *screenAttribute, CharacterCollection *characterCollection, 
 	MapInfo *mapInfo, void *controlPool, void *charActionCollection) {

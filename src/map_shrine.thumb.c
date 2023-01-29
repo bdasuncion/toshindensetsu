@@ -169,5 +169,7 @@ const EventTransfer transfer_map_shrine[] = {
 	{ 0, 144, 450, 110, &map_graveyard, 16, 63, ELeft},
 	{ 496, 144, 48, 200, &map_fencearea, 16, 63, ERight},
 };
-const MapInfo map_shrine = { 512, 256, 2, 7, 6, 2, 0, NULL , mapentryset_map_shrine, tileset_map_shrine, pallette_map_shrine, transfer_map_shrine, collision_map_shrine, actors_map_shrine, NULL };
+const MapInfo map_shrine = { 512, 256, 2, 7, 6, 2, 0, NULL , mapentryset_map_shrine, 
+	tileset_map_shrine, pallette_map_shrine, transfer_map_shrine, collision_map_shrine, 
+	actors_map_shrine, NULL, NULL, NULL, NULL, {0,0,0,0,0} };
 

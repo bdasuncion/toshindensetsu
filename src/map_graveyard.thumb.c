@@ -160,16 +160,18 @@ const EventTransfer transfer_map_graveyard[] = {
 int displayTitle = 420;
 void mapGraveYardCustomFunc(ScreenAttr *screenAttribute, CharacterCollection *characterCollection, 
 	MapInfo *mapInfo, void *controlPool, void *charActionCollection){
-	if (displayTitle) {
+	/*if (displayTitle) {
 		mprinter_printf("KANKANDARA NO MORI\n");
 		mprinter_printf("(FOREST OF THE KANKANDARA)\n");
 		mprinter_printf("\n\n\n\n\n\n");
 		mprinter_printf("-- USE HEADPHONES --\n");
 		--displayTitle;
-	};
+	};*/
 }
 
-const MapInfo map_graveyard = { 512, 256, 2, 3, 3, 1, 0, NULL , mapentryset_map_graveyard, tileset_map_graveyard, pallette_map_graveyard, transfer_map_graveyard, collision_map_graveyard, actors_map_graveyard, &mapGraveYardCustomFunc, NULL };
+const MapInfo map_graveyard = { 512, 256, 2, 3, 3, 1, 0, NULL , mapentryset_map_graveyard, 
+	tileset_map_graveyard, pallette_map_graveyard, transfer_map_graveyard, 
+	collision_map_graveyard, actors_map_graveyard, &mapGraveYardCustomFunc, NULL, NULL, NULL, {0,0,0,0,0} };
 
 const EventTransfer startat_map_graveyard[] = { 
 	{ 0, 0, 24, 120, &map_graveyard, 0, 0, ERight}
