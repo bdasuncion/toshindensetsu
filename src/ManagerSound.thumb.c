@@ -73,8 +73,8 @@ void msound_setUpMono(int quality) {
 					
 	soundBuffer.currentBuffer = 0;
 	
-	soundBuffer.intermediaryBufferA = malloc(SOUNDBUFFERSIZE[quality]*sizeof(s16));
-	soundBuffer.intermediaryBufferB = malloc(SOUNDBUFFERSIZE[quality]*sizeof(s16));
+	//soundBuffer.intermediaryBufferA = malloc(SOUNDBUFFERSIZE[quality]*sizeof(s16));
+	//soundBuffer.intermediaryBufferB = malloc(SOUNDBUFFERSIZE[quality]*sizeof(s16));
 	soundBuffer.bufferA = malloc(SOUNDBUFFERSIZE[quality]*2*sizeof(s8));
 	soundBuffer.bufferB = malloc(SOUNDBUFFERSIZE[quality]*2*sizeof(s8));//Why does this crash when I remove this?
 	soundBuffer.soundQuality = quality;
@@ -93,8 +93,8 @@ void msound_setUpStereo(int quality) {
 					
 	soundBuffer.currentBuffer = 0;
 	
-	soundBuffer.intermediaryBufferA = malloc(SOUNDBUFFERSIZE[quality]*sizeof(s16));
-	soundBuffer.intermediaryBufferB = malloc(SOUNDBUFFERSIZE[quality]*sizeof(s16));
+	//soundBuffer.intermediaryBufferA = malloc(SOUNDBUFFERSIZE[quality]*sizeof(s16));
+	//soundBuffer.intermediaryBufferB = malloc(SOUNDBUFFERSIZE[quality]*sizeof(s16));
 	soundBuffer.bufferA = malloc(SOUNDBUFFERSIZE[quality]*2*sizeof(s8));
 	soundBuffer.bufferB = malloc(SOUNDBUFFERSIZE[quality]*2*sizeof(s8));
 	soundBuffer.soundQuality = quality;
@@ -114,6 +114,16 @@ SampleSoundChannel* getOpenChannel() {
 	return NULL;
 }
 
+SampleSoundChannel* hasCurrentlySameSound(const void *data, const void *characterSource) {
+	int i;
+    for (i = 0; i < SOUNDEFFECT_NUM_CHANNEL; ++i) {
+	    if (data == soundChannels[i].data) {
+	        return &soundChannels[i];
+		}
+	}
+	return NULL;
+}
+
 void msound_setChannel3d(const Sound *sound, bool isRepeating, 
     int rightPhaseDelay, int leftPhaseDelay, int distance) {
 	int distAttenuation;
@@ -121,6 +131,11 @@ void msound_setChannel3d(const Sound *sound, bool isRepeating,
 	if (!channel) {
 	    return;
 	}
+	
+	if (hasCurrentlySameSound(sound->data, NULL)) {
+		return;
+	}
+	
 	if (sound->sampleSize == 8) {
 		channel->size = sound->size;
 	} else {
@@ -128,8 +143,6 @@ void msound_setChannel3d(const Sound *sound, bool isRepeating,
 	}
 	
 	distAttenuation = distance*((distance < 0)*(-1) + (distance >= 0)*1);
-	//mprinter_printf("COMPUTE DIST ATTENUTATION %d\n", ((distance < 0)*(-1) + (distance >= 0)*1));
-	//mprinter_printf("DIST ATTENUTATION %d\n", distAttenuation);
 	channel->aOutOfPhase = rightPhaseDelay;
 	channel->bOutOfPhase = leftPhaseDelay;
 	channel->isOpen = false;
@@ -172,8 +185,6 @@ void msound_setMusicChannel(int idx, const PatternData *pattern) {
 		musicChannels[idx].length = pattern->instrument->length;
 		musicChannels[idx].loop = false;
 		musicChannels[idx].play = true;
-		//mprinter_printf("%d %d %d %d %d", musicChannels[idx].idxStep, pattern->note, 
-		//	pattern->instrument->data[2], pattern->instrument->data[3], pattern->instrument->data[4]);
 	} /*else {
 		musicChannels[idx].idxStep = 0;
 		musicChannels[idx].length = 0;
@@ -189,6 +200,13 @@ void msound_setRow(Track *track) {
 }
 
 void msound_updateTrack(Track *track) {
+	if (track->musicTrack == NULL) {
+		musicChannels[0].play = false;
+		musicChannels[1].play = false;
+		musicChannels[2].play = false;
+		musicChannels[3].play = false;
+		return;
+	}
 	if (track->framesPassed == UPDATE_ONFRAME_1) {
 		msound_setRow(track);
 		++track->trackIndex;
@@ -254,13 +272,6 @@ void msound_mixSound() {
 	
 	msound_mixStereo(startingIdx, bufSize);
 	msound_mixMusic(startingIdx, bufSize);
-	
-	/*for(i = 0; i < bufSize; ++i) {
-		soundBuffer.bufferA[startingIdx + i] = soundBuffer.intermediaryBufferA[i];
-		soundBuffer.bufferB[startingIdx + i] = soundBuffer.intermediaryBufferB[i];
-		soundBuffer.intermediaryBufferA[i] = 0;
-		soundBuffer.intermediaryBufferB[i] = 0;
-	}*/
 }
 
 #define ATTENUATION 2
@@ -352,25 +363,25 @@ ARM_IWRAM void msound_mixMusic(int startingIdx, int bufSize) {
 
 		for(i = 0; i < bufSize; ++i) {
 			int idxData = currentChannel->idx >> INDEX_FRACTION;
+			/*if (idxData >= currentChannel->length) {
+				//mprinter_printf("STOP %d\n", idxData);
+				currentChannel->play = false;
+				break;
+			}*/
+			if (!currentChannel->loop && (idxData >= currentChannel->length)) {
+				idxData = currentChannel->instrument->loopStart;
+				currentChannel->idx = currentChannel->instrument->loopStart << INDEX_FRACTION;
+				currentChannel->loop = true;
+			} else if (currentChannel->loop && (idxData >= 
+				(currentChannel->instrument->loopStart + currentChannel->instrument->loopLength))) {
+				idxData = currentChannel->instrument->loopStart;
+				currentChannel->idx = currentChannel->instrument->loopStart << INDEX_FRACTION;
+			}
 			soundBuffer.bufferA[startingIdx + i] += currentChannel->instrument->data[idxData];
 			soundBuffer.bufferB[startingIdx + i] += currentChannel->instrument->data[idxData];
 			//soundBuffer.intermediaryBufferA[i] += currentChannel->instrument->data[idxData];
 			//soundBuffer.intermediaryBufferB[i] += currentChannel->instrument->data[idxData];
 			currentChannel->idx += currentChannel->idxStep;
-			idxData = currentChannel->idx >> INDEX_FRACTION;
-
-			/*if (idxData >= currentChannel->length) {
-				mprinter_printf("STOP %d\n", idxData);
-				currentChannel->play = false;
-				break;
-			}*/
-			if (!currentChannel->loop && (idxData >= currentChannel->length)) {
-				currentChannel->idx = currentChannel->instrument->loopStart << INDEX_FRACTION;
-				currentChannel->loop = true;
-			} else if (currentChannel->loop && (idxData >= 
-				(currentChannel->instrument->loopStart + currentChannel->instrument->loopLength))) {
-				currentChannel->idx = currentChannel->instrument->loopStart << INDEX_FRACTION;
-			}
 		}
 	}
 }

@@ -62,6 +62,7 @@ typedef struct SampleSoundChannel
 	u16 idxStep;
 	//const void *position;
 	const s8 *data;
+	const void *source;
 	//const s16 *data;
 }SampleSoundChannel;
 
@@ -79,8 +80,8 @@ typedef struct SoundBuffer {
 	u32 currentBuffer;
 	SoundQuality soundQuality;
 	u32 rcpMixFrequency;//For conversion from division to fixed point multiplication
-	s16	*intermediaryBufferA;
-	s16	*intermediaryBufferB;
+	//s16	*intermediaryBufferA;
+	//s16	*intermediaryBufferB;
 	s8	*bufferA;
 	s8	*bufferB;
 }ALIGN4 SoundBuffer;
@@ -108,8 +109,9 @@ typedef struct PatternData {
 }ALIGN4 PatternData;
 
 typedef struct MusicTrack {
-	const PatternData *columns[4];
-	const int length;
+	//PatternData *columns[4];
+	PatternData **columns;
+	int length;
 }ALIGN4 MusicTrack;
 
 typedef struct Track {
