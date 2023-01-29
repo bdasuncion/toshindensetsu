@@ -43,6 +43,7 @@ extern const EventTransfer startat_map_graveyard[];
 extern const MusicTrack musichorror;
 extern const MusicTrack musictest2;
 extern const MusicTrack musickankandara;
+extern const MusicTrack musickankandara_end;
 
 void fadeToBlack(ScreenAttr *screenAttribute, CharacterCollection *characterCollection, MapInfo *mapInfo);
 void mapCommon_goDark(void *screenAttribute, void *characterCollection, MapInfo *mapInfo);
@@ -53,12 +54,11 @@ inline void waitForVBlank() {
 
 void gameloop(MapInfo *mapInfo, CharacterCollection *characterCollection,
  OAMCollection *oamCollection, ControlTypePool *controlPool, ScreenAttr *screenAttribute, 
-    CharacterActionCollection *charActionCollection) {
+    CharacterActionCollection *charActionCollection, Track *track) {
 	
 	//mapInfo->transferTo =  &mapInfo->tranfers[0];
 	//mapInfo->mapFunction = &fadeToBlack;
 	//mapInfo->screenEffect.processScreenEffect = &mapCommon_goDark;
-	Track track = {&musickankandara,0,0};
 	while(1) {	
 		mprinter_clear();
 
@@ -87,13 +87,13 @@ void gameloop(MapInfo *mapInfo, CharacterCollection *characterCollection,
 		
 		if (mapInfo->mapFunction) {
 		    mapInfo->mapFunction(screenAttribute, characterCollection, mapInfo, 
-			    controlPool, charActionCollection);
+			    controlPool, charActionCollection, track);
 		}
 		
 		mapInfo->screenEffect.processScreenEffect(screenAttribute, characterCollection, 
-		    mapInfo, controlPool, charActionCollection);
+		    mapInfo, controlPool, charActionCollection, track);
 			
-		msound_updateTrack(&track);
+		msound_updateTrack(track);
 		msound_mixSound();
 		
 		waitForVBlank();
@@ -116,6 +116,7 @@ int main() {
 	//MapInfo mapInfo = mapTest;
 	MapInfo mapInfo = map_graveyard;
 	CharacterAttr *alisa;
+	Track track = {&musickankandara_end,0,0};
 	setWaitState();
 	sprite_vram_init();
 	sprite_palette_init();
@@ -146,7 +147,8 @@ int main() {
 	//mapInfo.mapFunction = &fadeToBlack;
 	mapInfo.transferTo =  &startat_map_graveyard[0];
 	//mapInfo.mapFunction(&screenAttribute, &characterCollection, &mapInfo, &controlPool, &charActionCollection);
-	mapCommon_transferToMap(&screenAttribute,  &characterCollection, &mapInfo, &controlPool,  &charActionCollection);
+	mapCommon_transferToMap(&screenAttribute,  &characterCollection, &mapInfo, &controlPool, 
+		&charActionCollection, &track);
 	
 	mgame_setUpdater(&updateGameStatus);
 	//Initalize display for 2 backgrounds and 1-d sprites
@@ -157,7 +159,7 @@ int main() {
 	
 	mprinter_init();
 	gameloop(&mapInfo, &characterCollection, &oamCollection, &controlPool, 
-	   &screenAttribute, &charActionCollection);
+	   &screenAttribute, &charActionCollection, &track);
 	
 	return 0;
 }
