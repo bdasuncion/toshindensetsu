@@ -36,30 +36,30 @@ typedef struct CharBoundingBox {
 } CharBoundingBox;
 
 typedef struct SpriteLayer {
-    u32 *image;
+    const u32 *image;
 	//u32 *palette; //TODO SHOULD REMOVE THIS
-	s32 offsetX:8;
-	s32 offsetY:8;
-    u32 shape:2;
-	u32 size:2;
-	u32 hflip:1;
-	u32 vflip:1;
-	u32 compression:2;
-	u32 idOffset:5;
-	u32 palleteidOffset:3; //TODO SHOULD CHANGE THIS
+	const s32 offsetX:8;
+	const s32 offsetY:8;
+    const u32 shape:2;
+	const u32 size:2;
+	const u32 hflip:1;
+	const u32 vflip:1;
+	const u32 compression:2;
+	const u32 idOffset:5;
+	const u32 palleteidOffset:3; //TODO SHOULD CHANGE THIS
 }ALIGN4 SpriteLayer;
 
 typedef struct SpriteLayerSet {
-    SpriteLayer *layers;
-    u32 displayForNumFrames:16;
-	u32 numberOflayers:16;
+    const SpriteLayer *layers;
+    const u32 displayForNumFrames:16;
+	const u32 numberOflayers:16;
 }ALIGN4 SpriteLayerSet;
 
 typedef struct SpriteSet {
     //u32 *palette; // TODO Palette should be here
 	//u32 paletteCount;
-    SpriteLayerSet *set;
-    u32 numberOfAnimation;
+    const SpriteLayerSet *set;
+    const u32 numberOfAnimation;
 }ALIGN4 SpriteSet;
 
 typedef struct SpriteDisplay {
@@ -192,10 +192,10 @@ typedef struct CharacterAttr {
 	CharacterStats stats;
 	u8 id;
 	s8 type;
-	u16 dummy;
+	u8 dummy;
 	u8 action;
-	EDirections direction:4;
-	EDirections faceDirection:4;
+	EDirections direction:8;
+	EDirections faceDirection:8;
 	u8 nextAction;
 	EDirections nextDirection:8;
 	MovementControl movementCtrl;
@@ -242,5 +242,4 @@ typedef struct CharacterCollection {
 
 #define CONVERT_TO_BOUNDINGBOX_Y(y, stat) \
 	(CONVERT_2POS(y) - (DIVIDE_BY_2(stat[EBBCnvrtWidth])))
-
 #endif
