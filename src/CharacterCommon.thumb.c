@@ -86,7 +86,7 @@ void commonCharacterMapEdgeCheck(CharacterAttr* character, const MapInfo *mapInf
 	character->position.y -= CONVERT_2MOVE(upperEdge*(charBoundingBox.startY));
 	character->position.x -= CONVERT_2MOVE(rightEdge*(charBoundingBox.endX - mapInfo->width));
 	character->position.y -= CONVERT_2MOVE(lowerEdge*(charBoundingBox.endY - mapInfo->height));
-	
+
 	if (character->free->type == EControlAiType) {
 		((CharacterAIControl*)character->free)->downBlocked |= lowerEdge;
 		((CharacterAIControl*)character->free)->upBlocked |= upperEdge;
@@ -169,7 +169,7 @@ void commonSetToOamBuffer(SpriteDisplay *spriteDisplay, OBJ_ATTR *oamBuf) {
 
 void commonSetToOamBufferAsObjWindow(SpriteDisplay *spriteDisplay, OBJ_ATTR *oamBuf) {
 	int i, xScreen, yScreen, id = spriteDisplay->baseImageId;
-	
+
     for (i = 0; i < spriteDisplay->spriteSet->set[spriteDisplay->currentAnimationFrame].numberOflayers; ++i) {
 
         yScreen = (spriteDisplay->baseY + 
@@ -180,18 +180,18 @@ void commonSetToOamBufferAsObjWindow(SpriteDisplay *spriteDisplay, OBJ_ATTR *oam
 
         xScreen = (spriteDisplay->baseX + 
 			spriteDisplay->spriteSet->set[spriteDisplay->currentAnimationFrame].layers[i].offsetX) & 0x01FF;
-		
+
 		oamBuf[i].attr1 = ATTR1_SET(xScreen, 
 			spriteDisplay->spriteSet->set[spriteDisplay->currentAnimationFrame].layers[i].size,
 			spriteDisplay->spriteSet->set[spriteDisplay->currentAnimationFrame].layers[i].hflip, 
 			spriteDisplay->spriteSet->set[spriteDisplay->currentAnimationFrame].layers[i].vflip);
-		
+
 		id += spriteDisplay->spriteSet->set[spriteDisplay->currentAnimationFrame].layers[i].idOffset;
-		
+
 		oamBuf[i].attr2 =  ATTR2_SET(id,
 		    spriteDisplay->basePalleteId + 
 			spriteDisplay->spriteSet->set[spriteDisplay->currentAnimationFrame].layers[i].palleteidOffset, 3);
-			
+
 		oamBuf[i].fill = 0;
 	}
 }
@@ -314,8 +314,7 @@ bool commonCollissionPointInBounds(const Position *collisionPoint, const Boundin
 
     return inBounds(collisionPoint->x, boundingBox->startX, boundingBox->endX) &
 		inBounds(collisionPoint->y, boundingBox->startY, boundingBox->endY);
-}	
-
+}
 
 bool commonPositionInBounds(const Position *position, const BoundingBox *boundingBox) {
 
@@ -667,7 +666,7 @@ void common_mapMovingLeftDownOffset(CharacterAttr* character,
 	}
 }
 
-void commonGetBoundsFromMap(s16 x, s16 y, const MapInfo* mapInfo, BoundingBox *charBoundingBox) {
+void commonGetBoundsFromMap(s32 x, s32 y, const MapInfo* mapInfo, BoundingBox *charBoundingBox) {
 	if (mapInfo->collisionMap) {
 	    int blockX = DIVIDE_BY_16(x);
 	    int blockY = DIVIDE_BY_16(y)*DIVIDE_BY_16(mapInfo->width);
