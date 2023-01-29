@@ -312,13 +312,7 @@ void kankandara_actionCrawl(CharacterAttr* character, const MapInfo *mapInfo,
 	
 		if (character->movementCtrl.currentFrame >= character->movementCtrl.maxFrames) {
 			character->movementCtrl.currentFrame = 0;
-			//rightPhaseDelay = 6*(distance < 0);
-			//leftPhaseDelay = 6*(distance > 0);
-			//distance = distance >> 4;
-			//if (distance < 15 && distance > -15) {
-				//msound_setChannel3d(&soundeffect_slither, false, rightPhaseDelay, leftPhaseDelay, distance);
-				msound_setChannelStereo(&soundeffect_slither, false, distance);
-			//}
+			msound_setChannelStereo(&soundeffect_slither, false, distance);
 		}
 		
 		int checkIfBehindDistance = DISTANCETURNAROUND + 1;
@@ -327,20 +321,26 @@ void kankandara_actionCrawl(CharacterAttr* character, const MapInfo *mapInfo,
 		} else {
 			checkIfBehindDistance = CONVERT_2POS(character->position.x) - CONVERT_2POS(charControl->target.x);
 		}
+		
 		int distY = CONVERT_2POS(character->position.y) - CONVERT_2POS(charControl->target.y);
 		if (checkIfBehindDistance < DISTANCETURNAROUND && checkIfBehindDistance >= 0 && distY <= 20 && distY >= -20) {
 			charControl->currentStatus = EKankandaraStatusTurnAround;
 			character->movementCtrl.currentFrame = 0;
-			//rightPhaseDelay = 6*(distance < 0);
-			//leftPhaseDelay = 6*(distance > 0);
-			//distance = distance >> 4;
-			//mprinter_printf("distance %d\n", distance);
 			CharacterPlayerControl *targetControl = (CharacterAIControl*)targetCharacter->free;
-			if (targetControl->currentStatus != EAlisaStatusStunned) {
-				msound_setChannelStereo(&soundeffect_kankandarascream, false, distance);
-				//msound_setChannel3d(&soundeffect_kankandarascream, false, rightPhaseDelay, leftPhaseDelay, distance);
-			}
+			//if (targetControl->currentStatus != EAlisaStatusStunned) {
+			msound_setChannelStereo(&soundeffect_kankandarascream, false, distance);
+			//}
 		}
+		
+		/*if (checkIfBehindDistance < 0) {
+			checkIfBehindDistance *= -1;
+		}
+		
+		if (checkIfBehindDistance < DISTANCETURNAROUND && checkIfBehindDistance >= 0 && distY <= 20 && distY >= -20) {
+			//if (targetControl->currentStatus != EAlisaStatusStunned) {
+				msound_setChannelStereo(&soundeffect_kankandarascream, false, distance);
+			//}
+		}*/
     }
 	
 	

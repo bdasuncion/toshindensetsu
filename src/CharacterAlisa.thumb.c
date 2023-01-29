@@ -211,15 +211,6 @@ const CharFuncCollisionReaction alisa_mapCollisionReactions[8] = {
 		&common_mapMovingLeftUpOffset,
 		&common_mapMovingLeft,
 		&common_mapMovingLeftDownOffset
-		
-		/*&common_movingDown,
-		&common_movingRightDownOffset,
-		&common_movingRight,
-		&common_movingRightUpOffset,
-		&common_movingUp,
-		&common_movingLeftUpOffset,
-		&common_movingLeft,
-		&common_movingLeftDownOffset*/
 };
 
 const CommonMapCollision alisa_mapCollision[] = {
